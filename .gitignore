@@ -4,3 +4,6 @@ Gemfile.lock
 pkg/*
 .rvmrc
 coverage
+*.bundle
+*.o
+*.log
