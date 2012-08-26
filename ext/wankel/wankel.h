@@ -8,20 +8,24 @@
 
 void Init_wankel();
 
-static VALUE wankel_parser_initialize(VALUE);
+static VALUE wankel_parser_initialize(VALUE self);
+
+static VALUE m_wankel, e_parseError, e_encodeError, c_Parser;
 
 static ID intern_io_read, intern_on_null, intern_on_boolean, intern_on_integer,
           intern_on_double, intern_on_number, intern_on_string, intern_on_start_map,
           intern_on_map_key, intern_on_end_map, intern_on_start_array, intern_on_end_array;
-
-static VALUE m_wankel, e_parseError, e_encodeError, c_Parser;
 
 typedef struct {
     yajl_handle handle;
     int alloced;
 } wankel_parser;
 
+// Yajl Helpers ==============================================================
+void yajl_check_status(yajl_handle handle, yajl_status status, int verbose, const unsigned char * jsonText, size_t jsonTextLength);
+
 // Callbacks =================================================================
+static yajl_callbacks wankel_parser_callbacks(VALUE self);
 static int wankel_parser_callback_on_null(void *ctx);
 static int wankel_parser_callback_on_boolean(void *ctx, int boolVal);
 static int wankel_parser_callback_on_integer(void *ctx, long long integerVal);
