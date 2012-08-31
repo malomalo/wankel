@@ -1,31 +1,37 @@
+#include <ruby.h>
+#include <ruby/encoding.h>
+#include <yajl/yajl_common.h>
+#include <yajl/yajl_parse.h>
+
 #include "sax_parser.h"
+#include "wankel.h"
+#include "yajl_helpers.h"
 
 static VALUE sax_parser_initialize(VALUE self) {
     sax_parser * p;
+
     Data_Get_Struct(self, sax_parser, p);
-    p->alloced = 0;
+
+    p->callbacks = sax_parser_callbacks(self);
+	p->alloc_funcs.malloc = yajl_helper_malloc;
+	p->alloc_funcs.realloc = yajl_helper_realloc;
+	p->alloc_funcs.free = yajl_helper_free;
+	p->alloc_funcs.ctx = NULL;
+    p->h = yajl_alloc(&p->callbacks, &p->alloc_funcs, (void *)self);
+    // yajl_config(p->h, yajl_allow_comments, 1);
+	
     return self;
 }
 
 static VALUE sax_parser_parse(int argc, VALUE * argv, VALUE self) {
     const char * cptr;
     unsigned int len;
-    yajl_callbacks callbacks;
     yajl_status status;
-    yajl_alloc_funcs alloc_funcs;
-    VALUE rbufsize, input, blk;
+    VALUE rbufsize, input;
     sax_parser * p;
 
     Data_Get_Struct(self, sax_parser, p);
-
-    alloc_funcs.malloc = handle_malloc;
-    alloc_funcs.realloc = handle_realloc;
-    alloc_funcs.free = handle_free;
-    alloc_funcs.ctx = NULL;
-    callbacks = sax_parser_callbacks(self);
-    p->handle = yajl_alloc(&callbacks, &alloc_funcs, (void *)self);
-    // yajl_config(parser->handle, yajl_allow_comments, 1);
-
+	
     rb_scan_args(argc, argv, "11", &input, &rbufsize);
     if(NIL_P(rbufsize)) {
         rbufsize = INT2FIX(READ_BUFSIZE);
@@ -35,22 +41,22 @@ static VALUE sax_parser_parse(int argc, VALUE * argv, VALUE self) {
     if (TYPE(input) == T_STRING) {
         cptr = RSTRING_PTR(input);
         len = RSTRING_LEN(input);
-        status = yajl_parse(p->handle, (const unsigned char*)cptr, len);
-        check_yajl_status(p->handle, status, 1, (const unsigned char*)cptr, len);
+        status = yajl_parse(p->h, (const unsigned char*)cptr, len);
+        yajl_helper_check_status(p->h, status, 1, (const unsigned char*)cptr, len);
     } else if (rb_respond_to(input, intern_io_read)) {
         VALUE chunk = rb_str_new(0, FIX2LONG(rbufsize));
         while (rb_funcall(input, intern_io_read, 2, rbufsize, chunk) != Qnil) {
             cptr = RSTRING_PTR(chunk);
             len = RSTRING_LEN(chunk);
-            status = yajl_parse(p->handle, (const unsigned char*)cptr, len);
-            check_yajl_status(p->handle, status, 1, (const unsigned char*)cptr, len);
+            status = yajl_parse(p->h, (const unsigned char*)cptr, len);
+            yajl_helper_check_status(p->h, status, 1, (const unsigned char*)cptr, len);
         }
     } else {
         rb_raise(e_parseError, "input must be a string or an IO");
     }
 
-    status = yajl_complete_parse(p->handle);
-    check_yajl_status(p->handle, status, 0, NULL, NULL);
+    status = yajl_complete_parse(p->h);
+    yajl_helper_check_status(p->h, status, 0, NULL, NULL);
 
     return Qnil;
 }
@@ -71,23 +77,12 @@ void Init_sax_parser() {
     intern_on_boolean = rb_intern("on_boolean");
     intern_on_integer = rb_intern("on_integer");
     intern_on_double = rb_intern("on_double");
-    intern_on_number = rb_intern("on_number");
     intern_on_string = rb_intern("on_string");
     intern_on_start_map = rb_intern("on_start_map");
     intern_on_map_key = rb_intern("on_map_key");
     intern_on_end_map = rb_intern("on_end_map");
     intern_on_start_array = rb_intern("on_start_array");
     intern_on_end_array = rb_intern("on_end_array");
-}
-
-// Yajl Helpers ==============================================================
-void check_yajl_status(yajl_handle handle, yajl_status status, int verbose, const unsigned char * jsonText, size_t jsonTextLength) {
-    if(status != yajl_status_ok) {
-        unsigned char * str = yajl_get_error(handle, verbose, jsonText, jsonTextLength);
-        VALUE errorObj = rb_exc_new2(e_parseError, (const char*) str);
-        yajl_free_error(handle, str);
-        rb_exc_raise(errorObj);
-    }
 }
 
 // Callbacks =================================================================
@@ -100,13 +95,7 @@ static yajl_callbacks sax_parser_callbacks(VALUE self) {
     if(rb_respond_to(self, intern_on_boolean)) {
         callbacks.yajl_boolean = sax_parser_callback_on_boolean;
     }
-    if(rb_respond_to(self, intern_on_integer)) {
-        callbacks.yajl_integer = sax_parser_callback_on_integer;
-    }
-    if(rb_respond_to(self, intern_on_double)) {
-        callbacks.yajl_double = sax_parser_callback_on_double;
-    }
-    if(rb_respond_to(self, intern_on_number)) {
+    if(rb_respond_to(self, intern_on_integer) || rb_respond_to(self, intern_on_double)) {
         callbacks.yajl_number = sax_parser_callback_on_number;
     }
     if(rb_respond_to(self, intern_on_string)) {
@@ -141,18 +130,24 @@ static int sax_parser_callback_on_boolean(void *ctx, int boolVal) {
     return 1;
 }
 
-static int sax_parser_callback_on_integer(void *ctx, long long integerVal) {
-    rb_funcall((VALUE)ctx, intern_on_integer, 1, LL2NUM(integerVal));
-    return 1;
-}
-static int sax_parser_callback_on_double(void *ctx, double doubleVal) {
-    rb_funcall((VALUE)ctx, intern_on_double, rb_float_new(doubleVal));
-    return 1;
-}
 static int sax_parser_callback_on_number(void *ctx, const char * numberVal, size_t numberLen) {
-    rb_funcall((VALUE)ctx, intern_on_number, 1, rb_str_new(numberVal, numberLen));
-    return 1;
+	char buf[numberLen+1];
+	buf[numberLen] = 0;
+	memcpy(buf, numberVal, numberLen);
+	VALUE obj = ctx;
+
+	if (memchr(buf, '.', numberLen) || memchr(buf, 'e', numberLen) || memchr(buf, 'E', numberLen)) {
+		if (rb_respond_to(obj, intern_on_double)) {
+			rb_funcall((VALUE)ctx, intern_on_double, 1, rb_float_new(strtod(buf, NULL)));			
+		}
+	} else {
+		if (rb_respond_to(obj, intern_on_integer)) {
+			rb_funcall((VALUE)ctx, intern_on_integer, 1, rb_cstr2inum(buf, 10));
+		}
+	}
+	return 1;
 }
+
 static int sax_parser_callback_on_string(void *ctx, const char * stringVal, size_t stringLen) {
     rb_funcall((VALUE)ctx, intern_on_string, 1, rb_str_new(stringVal, stringLen));
     return 1;
@@ -190,20 +185,7 @@ static VALUE sax_parser_alloc(VALUE klass) {
 //     if(p) { }
 // }
 
-static void sax_parser_free(void * parser) {
-    sax_parser * p = parser;
-    if(p->alloced) {
-        yajl_free(p->handle);
-    }
-}
-
-// Memory funcs ==============================================================
-static void * handle_malloc(void *ctx, size_t size) {
-    return xmalloc(size);
-}
-static void * handle_realloc(void *ctx, void *ptr, size_t size) {
-    return xrealloc(ptr, size);
-}
-static void handle_free(void *ctx, void *ptr) {
-    return xfree(ptr);
+static void sax_parser_free(void * handle) {
+    sax_parser * p = handle;
+	yajl_free(p->h);
 }
