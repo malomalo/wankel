@@ -10,6 +10,7 @@ $LOAD_PATH << ext
 
 require 'turn'
 require 'test/unit'
+require "mocha/setup"
 require 'wankel'
 
 

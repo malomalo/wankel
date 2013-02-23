@@ -1,91 +1,65 @@
 # encoding: UTF-8
 require 'test_helper'
 
-class Wankel::ParseTest < ::Test::Unit::TestCase
+class Wankel::OneOffParseTest < ::Test::Unit::TestCase
   
   test "should parse 23456789012E666 as Infinity" do
     infinity = (1.0/0)
-    assert_equal({:key => infinity}, Wankel.parse('{"key": 23456789012E999}'))
+    assert_equal({'key' => infinity}, Wankel.parse('{"key": 23456789012E999}'))
   end
   
   test "should not parse JSON with a comment, with :allow_comments set to false" do
-    json = StringIO.new('{"key": /* this is a comment */ "value"}')
-    lambda {
-      Yajl::Parser.parse(json, :allow_comments => false)
-    }.should raise_error(Yajl::ParseError)
+    assert_raise Wankel::ParseError do
+      Wankel.parse('{"key": /* this is a comment */ "value"}', :allow_comments => false)
+    end
   end
   
+  test "should not parse invalid UTF8 with :check_utf8 set to true" do
+    assert_raise Wankel::ParseError do
+      Wankel.parse("[\"#{"\201\203"}\"]", :validate_strings => true)
+    end
+  end
+
+  test "should parse invalid UTF8 with :check_utf8 set to false" do
+    Wankel.parse("[\"#{"\201\203"}\"]", :check_utf8 => false)
+  end
   
-end
-
-__END__
-describe "One-off JSON examples" do
-
-
-  it "should parse JSON with a comment, with :allow_comments set to true" do
-    json = StringIO.new('{"key": /* this is a comment */ "value"}')
-    lambda {
-      Yajl::Parser.parse(json, :allow_comments => true)
-    }.should_not raise_error(Yajl::ParseError)
-  end
-
-  it "should not parse invalid UTF8 with :check_utf8 set to true" do
-    parser = Yajl::Parser.new(:check_utf8 => true)
-    lambda {
-      parser.parse("[\"#{"\201\203"}\"]")
-    }.should raise_error(Yajl::ParseError)
-  end
-
-  it "should parse invalid UTF8 with :check_utf8 set to false" do
-    parser = Yajl::Parser.new(:check_utf8 => false)
-    parser.parse("[\"#{"\201\203"}\"]").inspect
-  end
-
-  it "should parse using it's class method, from an IO" do
+  test "should parse using it's class method, from an IO" do
     io = StringIO.new('{"key": 1234}')
-    Yajl::Parser.parse(io).should == {"key" => 1234}
+    assert_equal({'key' => 1234}, Wankel.parse(io))
   end
 
-  it "should parse using it's class method, from a string with symbolized keys" do
-    Yajl::Parser.parse('{"key": 1234}', :symbolize_keys => true).should == {:key => 1234}
+  test "should parse using it's class method, from a string with symbolized keys" do
+    assert_equal({:key => 1234}, Wankel.parse('{"key": 1234}', :symbolize_keys => true))
+  end
+  
+  test "should parse using it's class method, from a utf-8 string with multibyte characters, with symbolized keys" do
+    assert_equal({:"日本語" => 1234}, Wankel.parse('{"日本語": 1234}', :symbolize_keys => true))
   end
 
-  it "should parse using it's class method, from a utf-8 string with multibyte characters, with symbolized keys" do
-    Yajl::Parser.parse('{"日本語": 1234}', :symbolize_keys => true).should == {:"日本語" => 1234}
+  test "should parse using it's class method, from a string" do
+    assert_equal({"key" => 1234}, Wankel.parse('{"key": 1234}'))
   end
 
-  it "should parse using it's class method, from a string" do
-    Yajl::Parser.parse('{"key": 1234}').should == {"key" => 1234}
+  test "should parse numbers greater than 2,147,483,648" do
+    assert_equal({"id" => 2147483649}, Wankel.parse("{\"id\": 2147483649}"))
+    assert_equal({"id" => 5687389800}, Wankel.parse("{\"id\": 5687389800}"))
+    assert_equal({"id" => 1046289770033519442869495707521600000000}, Wankel.parse("{\"id\": 1046289770033519442869495707521600000000}"))
   end
 
-  it "should parse using it's class method, from a string with a block" do
-    output = nil
-    Yajl::Parser.parse('{"key": 1234}') do |obj|
-      output = obj
-    end
-    output.should == {"key" => 1234}
+  test "should return strings and hash keys in utf-8 if Encoding.default_internal is nil" do
+    Encoding.default_internal = nil
+    assert_equal(Encoding.find('utf-8'), Wankel.parse('{"key": "value"}').keys.first.encoding)
+    assert_equal(Encoding.find('utf-8'), Wankel.parse('{"key": "value"}').values.first.encoding)
   end
 
-  it "should parse numbers greater than 2,147,483,648" do
-    Yajl::Parser.parse("{\"id\": 2147483649}").should eql({"id" => 2147483649})
-    Yajl::Parser.parse("{\"id\": 5687389800}").should eql({"id" => 5687389800})
-    Yajl::Parser.parse("{\"id\": 1046289770033519442869495707521600000000}").should eql({"id" => 1046289770033519442869495707521600000000})
+  test "should return strings and hash keys encoded as specified in Encoding.default_internal if it's set" do
+    Encoding.default_internal = Encoding.find('utf-8')
+    assert_equal(Encoding.default_internal, Wankel.parse('{"key": "value"}').keys.first.encoding)
+    assert_equal(Encoding.default_internal, Wankel.parse('{"key": "value"}').values.first.encoding)
+    Encoding.default_internal = Encoding.find('us-ascii')
+    assert_equal(Encoding.default_internal, Wankel.parse('{"key": "value"}').keys.first.encoding)
+    assert_equal(Encoding.default_internal, Wankel.parse('{"key": "value"}').values.first.encoding)
   end
 
-  if RUBY_VERSION =~ /^1.9/
-    it "should return strings and hash keys in utf-8 if Encoding.default_internal is nil" do
-      Encoding.default_internal = nil
-      Yajl::Parser.parse('{"key": "value"}').keys.first.encoding.should eql(Encoding.find('utf-8'))
-      Yajl::Parser.parse('{"key": "value"}').values.first.encoding.should eql(Encoding.find('utf-8'))
-    end
-
-    it "should return strings and hash keys encoded as specified in Encoding.default_internal if it's set" do
-      Encoding.default_internal = Encoding.find('utf-8')
-      Yajl::Parser.parse('{"key": "value"}').keys.first.encoding.should eql(Encoding.default_internal)
-      Yajl::Parser.parse('{"key": "value"}').values.first.encoding.should eql(Encoding.default_internal)
-      Encoding.default_internal = Encoding.find('us-ascii')
-      Yajl::Parser.parse('{"key": "value"}').keys.first.encoding.should eql(Encoding.default_internal)
-      Yajl::Parser.parse('{"key": "value"}').values.first.encoding.should eql(Encoding.default_internal)
-    end
-  end
 end

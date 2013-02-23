@@ -1,5 +1,17 @@
 class Wankel::SaxParser
 
+  def on_map_start
+    puts 'start map'
+  end
+
+  def on_map_end
+    puts 'end map'
+  end
+
+  def on_map_key(key)
+    puts 'key'
+  end
+  
   def on_null
     puts "null"
   end
@@ -20,23 +32,11 @@ class Wankel::SaxParser
     puts "string"
   end
 
-  def on_map_key(key)
-    puts 'key'
-  end
-
-  def on_start_map
-    puts 'start map'
-  end
-
-  def on_end_map
-    puts 'end map'
-  end
-
-  def on_start_array
+  def on_array_start
     puts "start array"
   end
 
-  def on_end_array
+  def on_array_end
     puts "end array"
   end
 

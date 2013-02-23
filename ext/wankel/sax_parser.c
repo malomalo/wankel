@@ -23,6 +23,7 @@ static VALUE sax_parser_initialize(VALUE self) {
     return self;
 }
 
+// TODO pass buffersize as an option in hash
 static VALUE sax_parser_parse(int argc, VALUE * argv, VALUE self) {
     const char * cptr;
     unsigned int len;
@@ -38,6 +39,7 @@ static VALUE sax_parser_parse(int argc, VALUE * argv, VALUE self) {
     } else {
         Check_Type(rbufsize, T_FIXNUM);
     }
+
     if (TYPE(input) == T_STRING) {
         cptr = RSTRING_PTR(input);
         len = RSTRING_LEN(input);
@@ -78,11 +80,11 @@ void Init_sax_parser() {
     intern_on_integer = rb_intern("on_integer");
     intern_on_double = rb_intern("on_double");
     intern_on_string = rb_intern("on_string");
-    intern_on_start_map = rb_intern("on_start_map");
+    intern_on_map_start = rb_intern("on_map_start");
     intern_on_map_key = rb_intern("on_map_key");
-    intern_on_end_map = rb_intern("on_end_map");
-    intern_on_start_array = rb_intern("on_start_array");
-    intern_on_end_array = rb_intern("on_end_array");
+    intern_on_map_end = rb_intern("on_map_end");
+    intern_on_array_start = rb_intern("on_array_start");
+    intern_on_array_end = rb_intern("on_array_end");
 }
 
 // Callbacks =================================================================
@@ -101,20 +103,20 @@ static yajl_callbacks sax_parser_callbacks(VALUE self) {
     if(rb_respond_to(self, intern_on_string)) {
         callbacks.yajl_string = sax_parser_callback_on_string;
     }
-    if(rb_respond_to(self, intern_on_start_map)) {
-        callbacks.yajl_start_map = sax_parser_callback_on_start_map;
+    if(rb_respond_to(self, intern_on_map_start)) {
+        callbacks.yajl_start_map = sax_parser_callback_on_map_start;
     }
     if(rb_respond_to(self, intern_on_map_key)) {
         callbacks.yajl_map_key = sax_parser_callback_on_map_key;
     }
-    if(rb_respond_to(self, intern_on_end_map)) {
-        callbacks.yajl_end_map = sax_parser_callback_on_end_map;
+    if(rb_respond_to(self, intern_on_map_end)) {
+        callbacks.yajl_end_map = sax_parser_callback_on_map_end;
     }
-    if(rb_respond_to(self, intern_on_start_array)) {
-        callbacks.yajl_start_array = sax_parser_callback_on_start_array;
+    if(rb_respond_to(self, intern_on_array_start)) {
+        callbacks.yajl_start_array = sax_parser_callback_on_array_start;
     }
-    if(rb_respond_to(self, intern_on_end_array)) {
-        callbacks.yajl_end_array = sax_parser_callback_on_end_array;
+    if(rb_respond_to(self, intern_on_array_end)) {
+        callbacks.yajl_end_array = sax_parser_callback_on_array_end;
     }
 
     return callbacks;
@@ -152,24 +154,24 @@ static int sax_parser_callback_on_string(void *ctx, const char * stringVal, size
     rb_funcall((VALUE)ctx, intern_on_string, 1, rb_str_new(stringVal, stringLen));
     return 1;
 }
-static int sax_parser_callback_on_start_map(void *ctx) {
-    rb_funcall((VALUE)ctx, intern_on_start_map, 0);
+static int sax_parser_callback_on_map_start(void *ctx) {
+    rb_funcall((VALUE)ctx, intern_on_map_start, 0);
     return 1;
 }
 static int sax_parser_callback_on_map_key(void *ctx, const unsigned char * key, size_t keyLen) {
     rb_funcall((VALUE)ctx, intern_on_map_key, 1, rb_str_new(key, keyLen));
     return 1;
 }
-static int sax_parser_callback_on_end_map(void *ctx) {
-    rb_funcall((VALUE)ctx, intern_on_end_map, 0);
+static int sax_parser_callback_on_map_end(void *ctx) {
+    rb_funcall((VALUE)ctx, intern_on_map_end, 0);
     return 1;
 }
-static int sax_parser_callback_on_start_array(void *ctx) {
-    rb_funcall((VALUE)ctx, intern_on_start_array, 0);
+static int sax_parser_callback_on_array_start(void *ctx) {
+    rb_funcall((VALUE)ctx, intern_on_array_start, 0);
     return 1;
 }
-static int sax_parser_callback_on_end_array(void *ctx) {
-    rb_funcall((VALUE)ctx, intern_on_end_array, 0);
+static int sax_parser_callback_on_array_end(void *ctx) {
+    rb_funcall((VALUE)ctx, intern_on_array_end, 0);
     return 1;
 }
 
