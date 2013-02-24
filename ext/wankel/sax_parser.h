@@ -5,11 +5,11 @@ void Init_sax_parser();
 
 static VALUE sax_parser_initialize(VALUE self);
 
-static VALUE m_wankel, e_parseError, e_encodeError, c_saxParser;
+static VALUE c_saxParser;
 
-static ID intern_io_read, intern_on_null, intern_on_boolean, intern_on_integer,
-          intern_on_double, intern_on_string, intern_on_map_start, intern_on_map_key,
-		  intern_on_map_end, intern_on_array_start, intern_on_array_end;
+ID  intern_io_read, intern_on_null, intern_on_boolean, intern_on_integer,
+    intern_on_double, intern_on_string, intern_on_map_start, intern_on_map_key,
+    intern_on_map_end, intern_on_array_start, intern_on_array_end;
 
 typedef struct {
     yajl_handle h;

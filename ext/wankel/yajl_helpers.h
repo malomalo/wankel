@@ -4,8 +4,6 @@
 #include <ruby.h>
 #include <yajl/yajl_common.h>
 #include <yajl/yajl_parse.h>
-
-#include "wankel.h"
 	
 // Yajl Helpers ==============================================================
 void yajl_helper_check_status(yajl_handle handle, yajl_status status, int verbose, const unsigned char * jsonText, size_t jsonTextLength);

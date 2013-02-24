@@ -3,8 +3,8 @@
 #include <yajl/yajl_common.h>
 #include <yajl/yajl_parse.h>
 
-#include "sax_parser.h"
 #include "wankel.h"
+#include "sax_parser.h"
 #include "yajl_helpers.h"
 
 static VALUE sax_parser_initialize(VALUE self) {
@@ -19,6 +19,8 @@ static VALUE sax_parser_initialize(VALUE self) {
 	p->alloc_funcs.ctx = NULL;
     p->h = yajl_alloc(&p->callbacks, &p->alloc_funcs, (void *)self);
     // yajl_config(p->h, yajl_allow_comments, 1);
+    
+    // Check_Type(rbufsize, T_HASH);
 	
     return self;
 }
@@ -64,12 +66,7 @@ static VALUE sax_parser_parse(int argc, VALUE * argv, VALUE self) {
 }
 
 void Init_sax_parser() {
-    m_wankel = rb_const_get(rb_cObject, rb_intern("Wankel"));
-
-    e_parseError = rb_const_get(m_wankel, rb_intern("ParseError"));
-    e_encodeError = rb_const_get(m_wankel, rb_intern("EncodeError"));
-
-    c_saxParser = rb_define_class_under(m_wankel, "SaxParser", rb_cObject);
+    c_saxParser = rb_define_class_under(c_wankel, "SaxParser", rb_cObject);
     rb_define_alloc_func(c_saxParser, sax_parser_alloc);
     rb_define_method(c_saxParser, "initialize", sax_parser_initialize, 0);
     rb_define_method(c_saxParser, "parse", sax_parser_parse, -1);
@@ -178,8 +175,7 @@ static int sax_parser_callback_on_array_end(void *ctx) {
 // Ruby GC ===================================================================
 static VALUE sax_parser_alloc(VALUE klass) {
     sax_parser * p;
-    VALUE obj = Data_Make_Struct(klass, sax_parser, 0, sax_parser_free, p);
-    return obj;
+    return Data_Make_Struct(klass, sax_parser, 0, sax_parser_free, p);
 }
 
 // void sax_parser_mark(void * parser) {

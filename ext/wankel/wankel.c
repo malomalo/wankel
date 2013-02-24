@@ -1,133 +1,159 @@
-#include <ruby.h>
-#include <ruby/encoding.h>
-#include <yajl/yajl_common.h>
-#include <yajl/yajl_parse.h>
-#include <stdio.h>
-
 #include "wankel.h"
-#include "sax_parser.h"
-#include "yajl_helpers.h"
 
-static VALUE wankel_parse(int argc, VALUE * argv, VALUE self) {
-	const char * cptr;
-	unsigned int len;
-	yajl_status status;
-	wankel_parser p;
-    VALUE rbufsize, input, options, option;
-	rb_scan_args(argc, argv, "11", &input, &options);
-
-    p.callbacks = wankel_parse_callbacks();
-	p.alloc_funcs.malloc = yajl_helper_malloc;
-	p.alloc_funcs.realloc = yajl_helper_realloc;
-	p.alloc_funcs.free = yajl_helper_free;
-	p.alloc_funcs.ctx = NULL;
-	p.builderStack = rb_ary_new();
-    p.h = yajl_alloc(&p.callbacks, &p.alloc_funcs, (void *)&p);
-	
-	if(NIL_P(options)) {
-		rbufsize = INT2FIX(READ_BUFSIZE);
-		p.symbolizeKeys = 0;
-		yajl_config(p.h, yajl_allow_comments, 1);
-		yajl_config(p.h, yajl_dont_validate_strings, 1);
-		yajl_config(p.h, yajl_allow_trailing_garbage, 0);
-		yajl_config(p.h, yajl_allow_multiple_values, 0);
-		yajl_config(p.h, yajl_allow_partial_values, 0);
+static VALUE wankel_initialize(int argc, VALUE * argv, VALUE self) {
+    VALUE defaults = rb_const_get(c_wankel, intern_DEFAULTS);
+    VALUE options, rbufsize;
+    wankel_parser * p;
+    
+    rb_scan_args(argc, argv, "01", &options);
+    if(options == Qnil) {
+        rb_iv_set(self, "@options", rb_funcall(defaults, intern_clone, 0) );
     } else {
-		Check_Type(options, T_HASH);
-		
-		// rbufsize = rb_hash_aref(options, intern_buffer_size);
-		// if(RTEST(rbufsize)) {
-		// 	Check_Type(rbufsize, T_FIXNUM);
-		// 	rbufsize = INT2FIX(READ_BUFSIZE);
-		// } else {
-			rbufsize = INT2FIX(READ_BUFSIZE);
-		// }
-		
-		option = rb_hash_aref(options, ID2SYM(intern_symbolize_keys));
-		if(RTEST(option)) {
-			p.symbolizeKeys = 1;
-		} else {
-			p.symbolizeKeys = 0;
-		}
-		
-		option = rb_hash_aref(options, ID2SYM(intern_allow_comments));
-		if(RTEST(option)) {
-			yajl_config(p.h, yajl_allow_comments, 1);
-		} else {
-			yajl_config(p.h, yajl_allow_comments, 0);
-		}
-		
-		option = rb_hash_aref(options, ID2SYM(intern_validate_strings));
-		if(RTEST(option)) {
-			yajl_config(p.h, yajl_dont_validate_strings, 0);
-		} else {
-			yajl_config(p.h, yajl_dont_validate_strings, 1);
-		}
-		
-		option = rb_hash_aref(options, ID2SYM(intern_trailing_garbage));
-		if(RTEST(option)) {
-			yajl_config(p.h, yajl_allow_trailing_garbage, 1);
-		} else {
-			yajl_config(p.h, yajl_allow_trailing_garbage, 0);
-		}		
-		
-		option = rb_hash_aref(options, ID2SYM(intern_multiple_values));
-		if(RTEST(option)) {
-			yajl_config(p.h, yajl_allow_multiple_values, 1);
-		} else {
-			yajl_config(p.h, yajl_allow_multiple_values, 0);
-		}
-		
-		option = rb_hash_aref(options, ID2SYM(intern_partial_values));
-		if(RTEST(option)) {
-			yajl_config(p.h, yajl_allow_partial_values, 1);
-		} else {
-			yajl_config(p.h, yajl_allow_partial_values, 0);
-		}
-	}
+        Check_Type(options, T_HASH);
+        rb_iv_set(self, "@options", rb_funcall(defaults, intern_merge, 1, options) );
+    }
+    options = rb_iv_get(self, "@options");
 
+    Data_Get_Struct(self, wankel_parser, p);
+    p->alloc_funcs.malloc = yajl_helper_malloc;
+    p->alloc_funcs.realloc = yajl_helper_realloc;
+    p->alloc_funcs.free = yajl_helper_free;
+    p->h = yajl_alloc(&callbacks, &p->alloc_funcs, (void *)p);
+    
+    rbufsize = rb_hash_aref(options, sym_read_buffer_size);
+    Check_Type(rbufsize, T_FIXNUM);
+    p->rbufsize = rbufsize;
+
+    if(rb_hash_aref(options, sym_symbolize_keys) == Qtrue) {
+        p->symbolize_keys = 1;
+    } else {
+        p->symbolize_keys = 0;
+    }
+    
+    if(rb_hash_aref(options, sym_allow_comments) == Qtrue) {
+        yajl_config(p->h, yajl_allow_comments, 1);
+    } else {
+        yajl_config(p->h, yajl_allow_comments, 0);
+    }
+
+    if(rb_hash_aref(options, sym_validate_strings) == Qtrue) {
+        yajl_config(p->h, yajl_dont_validate_strings, 0);
+    } else {
+        yajl_config(p->h, yajl_dont_validate_strings, 1);
+    }
+
+    if(rb_hash_aref(options, sym_trailing_garbage) == Qtrue) {
+        yajl_config(p->h, yajl_allow_trailing_garbage, 1);
+    } else {
+        yajl_config(p->h, yajl_allow_trailing_garbage, 0);
+    }
+    
+    if(rb_hash_aref(options, sym_multiple_values) == Qtrue) {
+        yajl_config(p->h, yajl_allow_multiple_values, 1);
+    } else {
+        yajl_config(p->h, yajl_allow_multiple_values, 0);
+    }
+    
+    if(rb_hash_aref(options, sym_partial_values) == Qtrue) {
+        yajl_config(p->h, yajl_allow_partial_values, 1);
+    } else {
+        yajl_config(p->h, yajl_allow_partial_values, 0);
+    }
+    
+    return self;
+}
+
+static VALUE wankel_parse(VALUE self, VALUE input) {
+    const char * cptr;
+    unsigned int len;
+    yajl_status status;
+    wankel_parser * p;
+    
+    Data_Get_Struct(self, wankel_parser, p);
+    
+    // setup builder stack
+    p->stack = rb_ary_new();
+    
     if (TYPE(input) == T_STRING) {
         cptr = RSTRING_PTR(input);
         len = RSTRING_LEN(input);
-        status = yajl_parse(p.h, (const unsigned char*)cptr, len);
-        yajl_helper_check_status(p.h, status, 1, (const unsigned char*)cptr, len);
+        status = yajl_parse(p->h, (const unsigned char*)cptr, len);
+        yajl_helper_check_status(p->h, status, 1, (const unsigned char*)cptr, len);
     } else if (rb_respond_to(input, intern_io_read)) {
-        VALUE chunk = rb_str_new(0, FIX2LONG(rbufsize));
-        while (rb_funcall(input, intern_io_read, 2, rbufsize, chunk) != Qnil) {
+        VALUE chunk = rb_str_new(0, NUM2LONG(p->rbufsize));
+        while (rb_funcall(input, intern_io_read, 2, p->rbufsize, chunk) != Qnil) {
             cptr = RSTRING_PTR(chunk);
             len = RSTRING_LEN(chunk);
-            status = yajl_parse(p.h, (const unsigned char*)cptr, len);
-            yajl_helper_check_status(p.h, status, 1, (const unsigned char*)cptr, len);
+            status = yajl_parse(p->h, (const unsigned char*)cptr, len);
+            yajl_helper_check_status(p->h, status, 1, (const unsigned char*)cptr, len);
         }
     } else {
         rb_raise(e_parseError, "input must be a string or an IO");
     }
-    status = yajl_complete_parse(p.h);
-    yajl_helper_check_status(p.h, status, 0, NULL, NULL);
+    
+    status = yajl_complete_parse(p->h);
+    yajl_helper_check_status(p->h, status, 0, NULL, NULL);
+    return rb_ary_pop(p->stack);
+}
 
-	return rb_ary_pop(p.builderStack);
+// Class Methods =============================================================
+static VALUE wankel_class_parse(int argc, VALUE * argv, VALUE klass) {
+    VALUE parser, input, options;
+    rb_scan_args(argc, argv, "11", &input, &options);
+    
+    if(options != Qnil) {
+        Check_Type(options, T_HASH);
+    }
+    
+    parser = rb_funcall(klass, intern_new, 1, options);
+    return rb_funcall(parser, intern_parse, 1, input);
 }
 
 void Init_wankel() {
-    m_wankel = rb_define_module("Wankel");
+    c_wankel = rb_define_class("Wankel", rb_cObject);
+    e_parseError = rb_define_class_under(c_wankel, "ParseError", rb_eStandardError);
+    e_encodeError = rb_define_class_under(c_wankel, "EncodeError", rb_eStandardError);
 
-    e_parseError = rb_define_class_under(m_wankel, "ParseError", rb_eStandardError);
-    e_encodeError = rb_define_class_under(m_wankel, "EncodeError", rb_eStandardError);
+    rb_define_alloc_func(c_wankel, wankel_alloc);
+    rb_define_method(c_wankel, "initialize", wankel_initialize, -1);
+    rb_define_method(c_wankel, "parse", wankel_parse, 1);
+    rb_define_singleton_method(c_wankel, "parse", wankel_class_parse, -1);
 
-	rb_define_singleton_method(m_wankel, "parse", wankel_parse, -1);
-	
     intern_io_read = rb_intern("read");
-    intern_symbolize_keys = rb_intern("symbolize_keys");
-    intern_buffer_size = rb_intern("buffer_size");
-    intern_allow_comments = rb_intern("allow_comments");
-    intern_validate_strings = rb_intern("validate_strings");
-    intern_trailing_garbage = rb_intern("trailing_garbage");
-    intern_multiple_values = rb_intern("multiple_values");
-    intern_partial_values = rb_intern("partial_values");
-	
-	Init_sax_parser();
+    intern_new = rb_intern("new");
+    intern_clone = rb_intern("clone");
+    intern_merge = rb_intern("merge");
+    intern_parse = rb_intern("parse");
+    intern_DEFAULTS = rb_intern("DEFAULTS");
+    sym_read_buffer_size = ID2SYM(rb_intern("read_buffer_size"));
+    sym_write_buffer_size = ID2SYM(rb_intern("write_buffer_size"));
+    sym_symbolize_keys = ID2SYM(rb_intern("symbolize_keys"));
+    sym_allow_comments = ID2SYM(rb_intern("allow_comments"));
+    sym_validate_strings = ID2SYM(rb_intern("validate_strings"));
+    sym_trailing_garbage = ID2SYM(rb_intern("trailing_garbage"));
+    sym_multiple_values = ID2SYM(rb_intern("multiple_values"));
+    sym_partial_values = ID2SYM(rb_intern("partial_values"));
+    
+    // Init_sax_parser();
 }
 
+// Ruby GC ===================================================================
+static VALUE wankel_alloc(VALUE klass) {
+    wankel_parser * p;
+    return Data_Make_Struct(klass, wankel_parser, wankel_mark, wankel_free, p);
+}
+
+static void wankel_free(void * handle) {
+    wankel_parser * p = handle;
+    yajl_free(p->h);
+    // xfree(p);
+}
+
+static void wankel_mark(void * handle) {
+    wankel_parser * p = handle;
+    rb_gc_mark(p->stack);
+    rb_gc_mark(p->rbufsize);
+}
 
 // Parse Builder =============================================================
 static wankel_builder_push(void *ctx, VALUE val) {
@@ -135,52 +161,35 @@ static wankel_builder_push(void *ctx, VALUE val) {
 	wankel_parser * p = ctx;
     VALUE lastEntry, hash;
 
-    len = RARRAY_LEN(p->builderStack);
+    len = RARRAY_LEN(p->stack);
     if (len > 0) {
-        lastEntry = rb_ary_entry(p->builderStack, len-1);
+        lastEntry = rb_ary_entry(p->stack, len-1);
         switch (TYPE(lastEntry)) {
             case T_ARRAY:
                 rb_ary_push(lastEntry, val);
                 if (TYPE(val) == T_HASH || TYPE(val) == T_ARRAY) {
-                    rb_ary_push(p->builderStack, val);
+                    rb_ary_push(p->stack, val);
                 }
                 break;
             case T_HASH:
                 rb_hash_aset(lastEntry, val, Qnil);
-                rb_ary_push(p->builderStack, val);
+                rb_ary_push(p->stack, val);
                 break;
             case T_STRING:
             case T_SYMBOL:
-                hash = rb_ary_entry(p->builderStack, len-2);
+                hash = rb_ary_entry(p->stack, len-2);
                 if (TYPE(hash) == T_HASH) {
                     rb_hash_aset(hash, lastEntry, val);
-                    rb_ary_pop(p->builderStack);
+                    rb_ary_pop(p->stack);
                     if (TYPE(val) == T_HASH || TYPE(val) == T_ARRAY) {
-                        rb_ary_push(p->builderStack, val);
+                        rb_ary_push(p->stack, val);
                     }
                 }
                 break;
         }
     } else {
-        rb_ary_push(p->builderStack, val);
+        rb_ary_push(p->stack, val);
     }
-}
-
-// Parse Callbacks ===========================================================
-static yajl_callbacks wankel_parse_callbacks() {
-    yajl_callbacks callbacks = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
-
-    callbacks.yajl_null = wankel_parse_callback_on_null;
-    callbacks.yajl_boolean = wankel_parse_callback_on_boolean;
-    callbacks.yajl_number = wankel_parse_callback_on_number;
-    callbacks.yajl_string = wankel_parse_callback_on_string;
-    callbacks.yajl_start_map = wankel_parse_callback_on_map_start;
-    callbacks.yajl_map_key = wankel_parse_callback_on_map_key;
-    callbacks.yajl_end_map = wankel_parse_callback_on_map_end;
-    callbacks.yajl_start_array = wankel_parse_callback_on_array_start;
-    callbacks.yajl_end_array = wankel_parse_callback_on_array_end;
-
-    return callbacks;
 }
 
 static int wankel_parse_callback_on_null(void *ctx) {
@@ -239,7 +248,7 @@ static int wankel_parse_callback_on_map_key(void *ctx, const unsigned char * key
       str = rb_str_export_to_enc(str, default_internal_enc);
     }
 
-	if(p->symbolizeKeys) {
+	if(p->symbolize_keys) {
 		wankel_builder_push(ctx, ID2SYM(rb_to_id(str)) );
 	} else {
 		wankel_builder_push(ctx, str);
@@ -249,8 +258,8 @@ static int wankel_parse_callback_on_map_key(void *ctx, const unsigned char * key
 }
 static int wankel_parse_callback_on_map_end(void *ctx) {
 	wankel_parser * p = ctx;
-	if(RARRAY_LEN(p->builderStack) > 1) {
-		rb_ary_pop(p->builderStack);
+	if(RARRAY_LEN(p->stack) > 1) {
+		rb_ary_pop(p->stack);
 	}
     return 1;
 }
@@ -260,8 +269,8 @@ static int wankel_parse_callback_on_array_start(void *ctx) {
 }
 static int wankel_parse_callback_on_array_end(void *ctx) {
 	wankel_parser * p = ctx;
-	if(RARRAY_LEN(p->builderStack) > 1) {
-		rb_ary_pop(p->builderStack);
+	if(RARRAY_LEN(p->stack) > 1) {
+		rb_ary_pop(p->stack);
 	}
     return 1;
 }

@@ -1,3 +1,4 @@
+#include "wankel.h"
 #include "yajl_helpers.h"
 
 // Yajl Helpers ==============================================================
