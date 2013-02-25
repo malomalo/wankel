@@ -1,6 +1,7 @@
 #ifndef WANKEL
 #define WANKEL
 
+// TODO remove me
 #define READ_BUFSIZE 8092
 #define WRITE_BUFSIZE 8092
 
@@ -16,21 +17,23 @@ void Init_wankel();
 
 static VALUE c_wankel, e_parseError, e_encodeError;
 
-static VALUE wankel_parse(VALUE self, VALUE input);
+static VALUE wankel_parse(int argc, VALUE * argv, VALUE self);
 
-ID intern_io_read, intern_new, intern_clone, intern_merge, intern_parse,
-   intern_DEFAULTS;
+static ID intern_io_read, intern_new, intern_clone, intern_merge, intern_parse,
+          intern_call, intern_DEFAULTS;
    
-ID  sym_read_buffer_size, sym_write_buffer_size, sym_allow_comments,
-    sym_validate_strings, sym_trailing_garbage, sym_multiple_values,
-    sym_partial_values, sym_symbolize_keys;
+static ID  sym_read_buffer_size, sym_write_buffer_size, sym_allow_comments,
+           sym_validate_strings, sym_trailing_garbage, sym_multiple_values,
+           sym_partial_values, sym_symbolize_keys;
 
 typedef struct {
     yajl_handle h;
     yajl_alloc_funcs alloc_funcs;
     VALUE stack;
+    int stack_index;
     int symbolize_keys;
     VALUE rbufsize;
+    VALUE callback;
 } wankel_parser;
 
 static VALUE wankel_alloc(VALUE klass);

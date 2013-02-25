@@ -63,17 +63,22 @@ static VALUE wankel_initialize(int argc, VALUE * argv, VALUE self) {
     return self;
 }
 
-static VALUE wankel_parse(VALUE self, VALUE input) {
+static VALUE wankel_parse(int argc, VALUE * argv, VALUE self) {
     const char * cptr;
     unsigned int len;
     yajl_status status;
     wankel_parser * p;
+    VALUE input, options, callback;
+    rb_scan_args(argc, argv, "11", &input, &callback); // Hack, cuz i'm not sure how to call a method with a block from c
     
+    if(callback == Qnil && rb_block_given_p()) {
+        callback = rb_block_proc();
+    }
+        
     Data_Get_Struct(self, wankel_parser, p);
-    
-    // setup builder stack
+    p->callback = callback;
     p->stack = rb_ary_new();
-    
+    p->stack_index = 0;
     if (TYPE(input) == T_STRING) {
         cptr = RSTRING_PTR(input);
         len = RSTRING_LEN(input);
@@ -93,20 +98,24 @@ static VALUE wankel_parse(VALUE self, VALUE input) {
     
     status = yajl_complete_parse(p->h);
     yajl_helper_check_status(p->h, status, 0, NULL, NULL);
-    return rb_ary_pop(p->stack);
+
+    options = rb_iv_get(self, "@options");
+    if(rb_block_given_p()) {
+        return Qnil;
+    } else if(rb_hash_aref(options, sym_multiple_values) == Qtrue) {
+        return p->stack;
+    } else {
+        return rb_ary_pop(p->stack);
+    }
 }
 
 // Class Methods =============================================================
 static VALUE wankel_class_parse(int argc, VALUE * argv, VALUE klass) {
-    VALUE parser, input, options;
-    rb_scan_args(argc, argv, "11", &input, &options);
-    
-    if(options != Qnil) {
-        Check_Type(options, T_HASH);
-    }
+    VALUE parser, input, options, callback;
+    rb_scan_args(argc, argv, "11&", &input, &options, &callback);
     
     parser = rb_funcall(klass, intern_new, 1, options);
-    return rb_funcall(parser, intern_parse, 1, input);
+    return rb_funcall(parser, intern_parse, 2, input, callback);
 }
 
 void Init_wankel() {
@@ -116,7 +125,7 @@ void Init_wankel() {
 
     rb_define_alloc_func(c_wankel, wankel_alloc);
     rb_define_method(c_wankel, "initialize", wankel_initialize, -1);
-    rb_define_method(c_wankel, "parse", wankel_parse, 1);
+    rb_define_method(c_wankel, "parse", wankel_parse, -1);
     rb_define_singleton_method(c_wankel, "parse", wankel_class_parse, -1);
 
     intern_io_read = rb_intern("read");
@@ -124,6 +133,7 @@ void Init_wankel() {
     intern_clone = rb_intern("clone");
     intern_merge = rb_intern("merge");
     intern_parse = rb_intern("parse");
+    intern_call = rb_intern("call");
     intern_DEFAULTS = rb_intern("DEFAULTS");
     sym_read_buffer_size = ID2SYM(rb_intern("read_buffer_size"));
     sym_write_buffer_size = ID2SYM(rb_intern("write_buffer_size"));
@@ -134,7 +144,7 @@ void Init_wankel() {
     sym_multiple_values = ID2SYM(rb_intern("multiple_values"));
     sym_partial_values = ID2SYM(rb_intern("partial_values"));
     
-    // Init_sax_parser();
+    Init_sax_parser();
 }
 
 // Ruby GC ===================================================================
@@ -146,7 +156,6 @@ static VALUE wankel_alloc(VALUE klass) {
 static void wankel_free(void * handle) {
     wankel_parser * p = handle;
     yajl_free(p->h);
-    // xfree(p);
 }
 
 static void wankel_mark(void * handle) {
@@ -160,20 +169,25 @@ static wankel_builder_push(void *ctx, VALUE val) {
     int len;
 	wankel_parser * p = ctx;
     VALUE lastEntry, hash;
-
+    VALUE klass = rb_funcall(val, rb_intern("class"), 0);
     len = RARRAY_LEN(p->stack);
-    if (len > 0) {
+    
+    // rb_funcall(rb_const_get(rb_cObject,rb_intern("Kernel")), rb_intern("puts"), 1, INT2FIX(p->stack_index));
+    // rb_funcall(rb_const_get(rb_cObject,rb_intern("Kernel")), rb_intern("puts"), 1, rb_funcall(p->stack, rb_intern("join"), 1, rb_str_new2(",")));
+    if (p->stack_index > 0) {
         lastEntry = rb_ary_entry(p->stack, len-1);
         switch (TYPE(lastEntry)) {
             case T_ARRAY:
                 rb_ary_push(lastEntry, val);
                 if (TYPE(val) == T_HASH || TYPE(val) == T_ARRAY) {
                     rb_ary_push(p->stack, val);
+                    p->stack_index++;
                 }
                 break;
             case T_HASH:
                 rb_hash_aset(lastEntry, val, Qnil);
                 rb_ary_push(p->stack, val);
+                p->stack_index++;
                 break;
             case T_STRING:
             case T_SYMBOL:
@@ -181,14 +195,17 @@ static wankel_builder_push(void *ctx, VALUE val) {
                 if (TYPE(hash) == T_HASH) {
                     rb_hash_aset(hash, lastEntry, val);
                     rb_ary_pop(p->stack);
+                    p->stack_index--;
                     if (TYPE(val) == T_HASH || TYPE(val) == T_ARRAY) {
                         rb_ary_push(p->stack, val);
+                        p->stack_index++;
                     }
                 }
                 break;
         }
     } else {
         rb_ary_push(p->stack, val);
+        p->stack_index++;
     }
 }
 
@@ -257,10 +274,15 @@ static int wankel_parse_callback_on_map_key(void *ctx, const unsigned char * key
     return 1;
 }
 static int wankel_parse_callback_on_map_end(void *ctx) {
-	wankel_parser * p = ctx;
-	if(RARRAY_LEN(p->stack) > 1) {
-		rb_ary_pop(p->stack);
-	}
+    wankel_parser * p = ctx;
+    p->stack_index--;
+    
+    if(p->stack_index > 0) {
+        rb_ary_pop(p->stack);
+    } else if(p->stack_index == 0 && p->callback != Qnil) {
+        rb_funcall(p->callback, intern_call, 1, rb_ary_pop(p->stack));
+    }
+    
     return 1;
 }
 static int wankel_parse_callback_on_array_start(void *ctx) {
@@ -269,8 +291,13 @@ static int wankel_parse_callback_on_array_start(void *ctx) {
 }
 static int wankel_parse_callback_on_array_end(void *ctx) {
 	wankel_parser * p = ctx;
-	if(RARRAY_LEN(p->stack) > 1) {
-		rb_ary_pop(p->stack);
-	}
+    p->stack_index--;
+    
+    if(p->stack_index > 0) {
+        rb_ary_pop(p->stack);
+    } else if(p->stack_index == 0 && p->callback != Qnil) {
+        rb_funcall(p->callback, intern_call, 1, rb_ary_pop(p->stack));
+    }
+
     return 1;
 }
