@@ -1,7 +1,7 @@
 #include "wankel_sax_parser.h"
 
 static VALUE sax_parser_initialize(int argc, VALUE * argv, VALUE self) {
-    VALUE defaults = rb_const_get(c_wankel, intern_DEFAULTS);
+    VALUE defaults = rb_const_get(c_wankelParser, intern_DEFAULTS);
     VALUE klass = rb_funcall(self, rb_intern("class"), 0);
     VALUE options, rbufsize;
     sax_parser * p;
@@ -74,6 +74,7 @@ static VALUE sax_parser_parse(int argc, VALUE * argv, VALUE self) {
 
 void Init_wankel_sax_parser() {
     c_wankel = rb_const_get(rb_cObject, rb_intern("Wankel"));
+    c_wankelParser = rb_const_get(c_wankel, rb_intern("Parser"));
     c_saxParser = rb_define_class_under(c_wankel, "SaxParser", rb_cObject);
     e_parseError = rb_const_get(c_wankel, rb_intern("ParseError"));
     e_encodeError = rb_const_get(c_wankel, rb_intern("EncodeError"));

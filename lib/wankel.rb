@@ -1,6 +1,6 @@
 require 'wankel/wankel'
 
-class Wankel
+class Wankel::Parser
   DEFAULTS = {
     :read_buffer_size => 8092,
     :write_buffer_size => 8092,

@@ -47,7 +47,7 @@ class Wankel::MultipleValuesTest < ::Test::Unit::TestCase
     expected = [{"abc" => 123},{"def" => 456}]
     result = []
     
-    p = Wankel.new(:multiple_values => true)
+    p = Wankel::Parser.new(:multiple_values => true)
     p.parse('[{"abc": 123},{"def": 456}][{"abc": 123},{"def": 456}]') do |data|
       result << data
     end
@@ -58,7 +58,7 @@ class Wankel::MultipleValuesTest < ::Test::Unit::TestCase
     expected = [{"abc" => 123},{"def" => 456}]
     result = []
     
-    p = Wankel.new(:multiple_values => true)
+    p = Wankel::Parser.new(:multiple_values => true)
     p.parse(StringIO.new('[{"abc": 123},{"def": 456}][{"abc": 123},{"def": 456}]')) do |data|
       result << data
     end
