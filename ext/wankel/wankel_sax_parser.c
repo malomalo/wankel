@@ -1,55 +1,62 @@
-#include <ruby.h>
-#include <ruby/encoding.h>
-#include <yajl/yajl_common.h>
-#include <yajl/yajl_parse.h>
+#include "wankel_sax_parser.h"
 
-#include "wankel.h"
-#include "sax_parser.h"
-#include "yajl_helpers.h"
-
-static VALUE sax_parser_initialize(VALUE self) {
+static VALUE sax_parser_initialize(int argc, VALUE * argv, VALUE self) {
+    VALUE defaults = rb_const_get(c_wankel, intern_DEFAULTS);
+    VALUE klass = rb_funcall(self, rb_intern("class"), 0);
+    VALUE options, rbufsize;
     sax_parser * p;
 
-    Data_Get_Struct(self, sax_parser, p);
+    rb_scan_args(argc, argv, "01", &options);
+    if (rb_const_defined(klass, intern_DEFAULTS)) { 
+        defaults = rb_funcall(defaults, intern_merge, 1, rb_const_get(klass, intern_DEFAULTS));
+    }
+    if(options == Qnil) {
+        rb_iv_set(self, "@options", rb_funcall(defaults, intern_clone, 0) );
+    } else {
+        Check_Type(options, T_HASH);
+        rb_iv_set(self, "@options", rb_funcall(defaults, intern_merge, 1, options) );
+    }
+    options = rb_iv_get(self, "@options");
 
+    Data_Get_Struct(self, sax_parser, p);
     p->callbacks = sax_parser_callbacks(self);
-	p->alloc_funcs.malloc = yajl_helper_malloc;
-	p->alloc_funcs.realloc = yajl_helper_realloc;
-	p->alloc_funcs.free = yajl_helper_free;
-	p->alloc_funcs.ctx = NULL;
+    p->alloc_funcs.malloc = yajl_helper_malloc;
+    p->alloc_funcs.realloc = yajl_helper_realloc;
+    p->alloc_funcs.free = yajl_helper_free;
     p->h = yajl_alloc(&p->callbacks, &p->alloc_funcs, (void *)self);
-    // yajl_config(p->h, yajl_allow_comments, 1);
     
-    // Check_Type(rbufsize, T_HASH);
-	
+    yajl_configure(p->h, options);
+        
+    rbufsize = rb_hash_aref(options, sym_read_buffer_size);
+    Check_Type(rbufsize, T_FIXNUM);
+    p->rbufsize = rbufsize;
+    
+    if(rb_hash_aref(options, sym_symbolize_keys) == Qtrue) {
+        p->symbolize_keys = 1;
+    } else {
+        p->symbolize_keys = 0;
+    }
+    
     return self;
 }
 
-// TODO pass buffersize as an option in hash
 static VALUE sax_parser_parse(int argc, VALUE * argv, VALUE self) {
     const char * cptr;
     unsigned int len;
     yajl_status status;
-    VALUE rbufsize, input;
     sax_parser * p;
-
+    VALUE input;
     Data_Get_Struct(self, sax_parser, p);
 	
-    rb_scan_args(argc, argv, "11", &input, &rbufsize);
-    if(NIL_P(rbufsize)) {
-        rbufsize = INT2FIX(READ_BUFSIZE);
-    } else {
-        Check_Type(rbufsize, T_FIXNUM);
-    }
-
+    rb_scan_args(argc, argv, "10", &input);
     if (TYPE(input) == T_STRING) {
         cptr = RSTRING_PTR(input);
         len = RSTRING_LEN(input);
         status = yajl_parse(p->h, (const unsigned char*)cptr, len);
         yajl_helper_check_status(p->h, status, 1, (const unsigned char*)cptr, len);
     } else if (rb_respond_to(input, intern_io_read)) {
-        VALUE chunk = rb_str_new(0, FIX2LONG(rbufsize));
-        while (rb_funcall(input, intern_io_read, 2, rbufsize, chunk) != Qnil) {
+        VALUE chunk = rb_str_new(0, FIX2LONG(p->rbufsize));
+        while (rb_funcall(input, intern_io_read, 2, p->rbufsize, chunk) != Qnil) {
             cptr = RSTRING_PTR(chunk);
             len = RSTRING_LEN(chunk);
             status = yajl_parse(p->h, (const unsigned char*)cptr, len);
@@ -58,20 +65,31 @@ static VALUE sax_parser_parse(int argc, VALUE * argv, VALUE self) {
     } else {
         rb_raise(e_parseError, "input must be a string or an IO");
     }
-
+    
     status = yajl_complete_parse(p->h);
     yajl_helper_check_status(p->h, status, 0, NULL, NULL);
-
+    
     return Qnil;
 }
 
-void Init_sax_parser() {
+void Init_wankel_sax_parser() {
+    c_wankel = rb_const_get(rb_cObject, rb_intern("Wankel"));
     c_saxParser = rb_define_class_under(c_wankel, "SaxParser", rb_cObject);
+    e_parseError = rb_const_get(c_wankel, rb_intern("ParseError"));
+    e_encodeError = rb_const_get(c_wankel, rb_intern("EncodeError"));
+    
     rb_define_alloc_func(c_saxParser, sax_parser_alloc);
-    rb_define_method(c_saxParser, "initialize", sax_parser_initialize, 0);
+    rb_define_method(c_saxParser, "initialize", sax_parser_initialize, -1);
     rb_define_method(c_saxParser, "parse", sax_parser_parse, -1);
-
-    intern_io_read = rb_intern("read");
+    
+    intern_merge = rb_intern("merge");
+    intern_clone = rb_intern("clone");
+    intern_DEFAULTS = rb_intern("DEFAULTS");
+    
+    sym_read_buffer_size = ID2SYM(rb_intern("read_buffer_size"));
+    sym_write_buffer_size = ID2SYM(rb_intern("write_buffer_size"));
+    sym_symbolize_keys = ID2SYM(rb_intern("symbolize_keys"));
+    
     intern_on_null = rb_intern("on_null");
     intern_on_boolean = rb_intern("on_boolean");
     intern_on_integer = rb_intern("on_integer");
@@ -100,6 +118,7 @@ static yajl_callbacks sax_parser_callbacks(VALUE self) {
     if(rb_respond_to(self, intern_on_string)) {
         callbacks.yajl_string = sax_parser_callback_on_string;
     }
+
     if(rb_respond_to(self, intern_on_map_start)) {
         callbacks.yajl_start_map = sax_parser_callback_on_map_start;
     }
@@ -108,7 +127,7 @@ static yajl_callbacks sax_parser_callbacks(VALUE self) {
     }
     if(rb_respond_to(self, intern_on_map_end)) {
         callbacks.yajl_end_map = sax_parser_callback_on_map_end;
-    }
+     }
     if(rb_respond_to(self, intern_on_array_start)) {
         callbacks.yajl_start_array = sax_parser_callback_on_array_start;
     }
@@ -177,11 +196,6 @@ static VALUE sax_parser_alloc(VALUE klass) {
     sax_parser * p;
     return Data_Make_Struct(klass, sax_parser, 0, sax_parser_free, p);
 }
-
-// void sax_parser_mark(void * parser) {
-//     sax_parser * p = parser;
-//     if(p) { }
-// }
 
 static void sax_parser_free(void * handle) {
     sax_parser * p = handle;

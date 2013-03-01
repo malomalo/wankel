@@ -29,36 +29,8 @@ static VALUE wankel_initialize(int argc, VALUE * argv, VALUE self) {
     } else {
         p->symbolize_keys = 0;
     }
-    
-    if(rb_hash_aref(options, sym_allow_comments) == Qtrue) {
-        yajl_config(p->h, yajl_allow_comments, 1);
-    } else {
-        yajl_config(p->h, yajl_allow_comments, 0);
-    }
 
-    if(rb_hash_aref(options, sym_validate_strings) == Qtrue) {
-        yajl_config(p->h, yajl_dont_validate_strings, 0);
-    } else {
-        yajl_config(p->h, yajl_dont_validate_strings, 1);
-    }
-
-    if(rb_hash_aref(options, sym_trailing_garbage) == Qtrue) {
-        yajl_config(p->h, yajl_allow_trailing_garbage, 1);
-    } else {
-        yajl_config(p->h, yajl_allow_trailing_garbage, 0);
-    }
-    
-    if(rb_hash_aref(options, sym_multiple_values) == Qtrue) {
-        yajl_config(p->h, yajl_allow_multiple_values, 1);
-    } else {
-        yajl_config(p->h, yajl_allow_multiple_values, 0);
-    }
-    
-    if(rb_hash_aref(options, sym_partial_values) == Qtrue) {
-        yajl_config(p->h, yajl_allow_partial_values, 1);
-    } else {
-        yajl_config(p->h, yajl_allow_partial_values, 0);
-    }
+    yajl_configure(p->h, options);
     
     return self;
 }
@@ -138,13 +110,9 @@ void Init_wankel() {
     sym_read_buffer_size = ID2SYM(rb_intern("read_buffer_size"));
     sym_write_buffer_size = ID2SYM(rb_intern("write_buffer_size"));
     sym_symbolize_keys = ID2SYM(rb_intern("symbolize_keys"));
-    sym_allow_comments = ID2SYM(rb_intern("allow_comments"));
-    sym_validate_strings = ID2SYM(rb_intern("validate_strings"));
-    sym_trailing_garbage = ID2SYM(rb_intern("trailing_garbage"));
     sym_multiple_values = ID2SYM(rb_intern("multiple_values"));
-    sym_partial_values = ID2SYM(rb_intern("partial_values"));
     
-    Init_sax_parser();
+    Init_wankel_sax_parser();
 }
 
 // Ruby GC ===================================================================

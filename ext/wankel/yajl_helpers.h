@@ -14,4 +14,6 @@ void* yajl_helper_realloc(void *ctx, void *ptr, size_t size);
 void  yajl_helper_free(void *ctx, void *ptr);
 // static yajl_alloc_funcs* yajl_helper_alloc_funcs();
 
+void yajl_configure(yajl_handle handle, VALUE options);
+
 #endif

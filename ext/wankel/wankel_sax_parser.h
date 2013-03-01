@@ -1,20 +1,34 @@
 #ifndef WANKEL_SAX_PARSER
 #define WANKEL_SAX_PARSER
 
-void Init_sax_parser();
+#include <ruby.h>
+#include <ruby/encoding.h>
+#include <yajl/yajl_common.h>
+#include <yajl/yajl_parse.h>
 
-static VALUE sax_parser_initialize(VALUE self);
+#include "wankel.h"
+#include "yajl_helpers.h"
 
-static VALUE c_saxParser;
+void Init_wankel_sax_parser();
 
-ID  intern_io_read, intern_on_null, intern_on_boolean, intern_on_integer,
-    intern_on_double, intern_on_string, intern_on_map_start, intern_on_map_key,
-    intern_on_map_end, intern_on_array_start, intern_on_array_end;
+static VALUE sax_parser_initialize(int argc, VALUE * argv, VALUE self);
+
+static VALUE c_wankel, c_saxParser, e_parseError, e_encodeError;
+
+static ID  sym_read_buffer_size, sym_write_buffer_size, sym_symbolize_keys;
+
+static ID  intern_merge, intern_clone, intern_DEFAULTS;
+
+static ID  intern_on_null, intern_on_boolean, intern_on_integer,
+           intern_on_double, intern_on_string, intern_on_map_start, intern_on_map_key,
+           intern_on_map_end, intern_on_array_start, intern_on_array_end;
 
 typedef struct {
     yajl_handle h;
 	yajl_callbacks callbacks;
     yajl_alloc_funcs alloc_funcs;
+    int symbolize_keys;
+    VALUE rbufsize;
 } sax_parser;
 
 // Callbacks =================================================================

@@ -10,7 +10,7 @@
 #include <yajl/yajl_common.h>
 #include <yajl/yajl_parse.h>
 
-#include "sax_parser.h"
+#include "wankel_sax_parser.h"
 #include "yajl_helpers.h"
 
 void Init_wankel();
@@ -20,11 +20,9 @@ static VALUE c_wankel, e_parseError, e_encodeError;
 static VALUE wankel_parse(int argc, VALUE * argv, VALUE self);
 
 static ID intern_io_read, intern_new, intern_clone, intern_merge, intern_parse,
-          intern_call, intern_DEFAULTS;
+          intern_call, intern_DEFAULTS, sym_multiple_values;
    
-static ID  sym_read_buffer_size, sym_write_buffer_size, sym_allow_comments,
-           sym_validate_strings, sym_trailing_garbage, sym_multiple_values,
-           sym_partial_values, sym_symbolize_keys;
+static ID  sym_read_buffer_size, sym_write_buffer_size, sym_symbolize_keys;
 
 typedef struct {
     yajl_handle h;

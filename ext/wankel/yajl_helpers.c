@@ -22,14 +22,35 @@ void yajl_helper_free(void *ctx, void *ptr) {
     return xfree(ptr);
 }
 
-// cant get this to work yet
-// yajl_alloc_funcs* yajl_helper_alloc_funcs() {
-//     static yajl_alloc_funcs alloc_funcs = {
-// 		yajl_helper_malloc,
-// 		yajl_helper_realloc,
-// 		yajl_helper_free,
-// 		NULL
-// 	};
-// 	
-// 	return &alloc_funcs;
-// };
+// Configure
+void yajl_configure(yajl_handle handle, VALUE options) {
+    if(rb_hash_aref(options, ID2SYM(rb_intern("allow_comments")) ) == Qtrue) {
+        yajl_config(handle, yajl_allow_comments, 1);
+    } else {
+        yajl_config(handle, yajl_allow_comments, 0);
+    }
+
+    if(rb_hash_aref(options, ID2SYM(rb_intern("validate_strings")) ) == Qtrue) {
+        yajl_config(handle, yajl_dont_validate_strings, 0);
+    } else {
+        yajl_config(handle, yajl_dont_validate_strings, 1);
+    }
+
+    if(rb_hash_aref(options, ID2SYM(rb_intern("trailing_garbage")) ) == Qtrue) {
+        yajl_config(handle, yajl_allow_trailing_garbage, 1);
+    } else {
+        yajl_config(handle, yajl_allow_trailing_garbage, 0);
+    }
+
+    if(rb_hash_aref(options, ID2SYM(rb_intern("multiple_values")) ) == Qtrue) {
+        yajl_config(handle, yajl_allow_multiple_values, 1);
+    } else {
+        yajl_config(handle, yajl_allow_multiple_values, 0);
+    }
+
+    if(rb_hash_aref(options, ID2SYM(rb_intern("partial_values")) ) == Qtrue) {
+        yajl_config(handle, yajl_allow_partial_values, 1);
+    } else {
+        yajl_config(handle, yajl_allow_partial_values, 0);
+    }
+}
