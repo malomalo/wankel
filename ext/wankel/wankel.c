@@ -19,6 +19,7 @@ void Init_wankel() {
 
     rb_define_singleton_method(c_wankel, "parse", wankel_parse, -1);
     
-    c_wankelParser = Init_wankel_parser();    
+    c_wankelParser = Init_wankel_parser();
+    c_wankelEncoder = Init_wankel_encoder();
     Init_wankel_sax_parser();
 }

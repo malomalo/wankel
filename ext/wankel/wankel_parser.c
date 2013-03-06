@@ -1,7 +1,7 @@
 #include "wankel_parser.h"
 
 static VALUE wankelParser_initialize(int argc, VALUE * argv, VALUE self) {
-    VALUE defaults = rb_const_get(c_wankelParser, intern_DEFAULTS);
+    VALUE defaults = rb_const_get(c_wankel, intern_DEFAULTS);
     VALUE options, rbufsize;
     wankel_parser * p;
     
