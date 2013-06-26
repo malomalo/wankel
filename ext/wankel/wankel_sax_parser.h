@@ -15,7 +15,7 @@ static VALUE sax_parser_initialize(int argc, VALUE * argv, VALUE self);
 
 static VALUE c_wankel, c_saxParser, e_parseError, e_encodeError;
 
-static ID  sym_read_buffer_size, sym_write_buffer_size, sym_symbolize_keys;
+static ID  sym_read_buffer_size, sym_symbolize_keys;
 
 static ID  intern_merge, intern_clone, intern_DEFAULTS;
 

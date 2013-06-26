@@ -3,7 +3,6 @@ require "rake/testtask"
 require "rubygems/package_task"
 require "rdoc/task"
 
-
 spec = Gem::Specification.load("wankel.gemspec")
 
 # Setup compile tasks

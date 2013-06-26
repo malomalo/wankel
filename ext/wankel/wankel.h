@@ -7,6 +7,7 @@
 #include <yajl/yajl_parse.h>
 
 #include "wankel_parser.h"
+#include "wankel_encoder.h"
 #include "wankel_sax_parser.h"
 #include "yajl_helpers.h"
 
@@ -14,6 +15,6 @@ void Init_wankel();
 
 static VALUE c_wankel, c_wankelParser, c_wankelEncoder, e_parseError, e_encodeError;
 
-static ID intern_new, intern_parse;
+static ID intern_new, intern_parse, intern_encode;
 
 #endif

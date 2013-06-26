@@ -1,7 +1,7 @@
 #include "wankel_sax_parser.h"
 
 static VALUE sax_parser_initialize(int argc, VALUE * argv, VALUE self) {
-    VALUE defaults = rb_const_get(c_wankelParser, intern_DEFAULTS);
+    VALUE defaults = rb_const_get(c_wankel, intern_DEFAULTS);
     VALUE klass = rb_funcall(self, rb_intern("class"), 0);
     VALUE options, rbufsize;
     sax_parser * p;
@@ -88,7 +88,6 @@ void Init_wankel_sax_parser() {
     intern_DEFAULTS = rb_intern("DEFAULTS");
     
     sym_read_buffer_size = ID2SYM(rb_intern("read_buffer_size"));
-    sym_write_buffer_size = ID2SYM(rb_intern("write_buffer_size"));
     sym_symbolize_keys = ID2SYM(rb_intern("symbolize_keys"));
     
     intern_on_null = rb_intern("on_null");

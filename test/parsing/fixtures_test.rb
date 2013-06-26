@@ -27,7 +27,7 @@ class Wankel::ParsingJSONFixturesTest < ::Test::Unit::TestCase
   PASSED.each do |name, source|
     test "should be able to parse #{File.basename(name)} as an IO" do
       assert_nothing_raised Wankel::ParseError do
-        Wankel.parse(StringIO.new(source))
+        Wankel.parse(StringIO.new(source), :allow_comments => true)
       end
     end
   end
@@ -35,7 +35,7 @@ class Wankel::ParsingJSONFixturesTest < ::Test::Unit::TestCase
   PASSED.each do |name, source|
     test "should be able to parse #{File.basename(name)} as a string" do
       assert_nothing_raised Wankel::ParseError do
-        Wankel.parse(source)
+        Wankel.parse(source, :allow_comments => true)
       end
     end
   end

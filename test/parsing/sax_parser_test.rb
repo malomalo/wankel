@@ -28,7 +28,7 @@ class Wankel::SaxParserTest < ::Test::Unit::TestCase
   
   test 'default inherited from Wankel' do
       parser = TestParser.new
-      parser.instance_variable_get("@options") == Wankel::Parser::DEFAULTS
+      parser.instance_variable_get("@options") == Wankel::DEFAULTS
   end
   
   test 'default inherited from Wankel && Class' do
@@ -37,7 +37,7 @@ class Wankel::SaxParserTest < ::Test::Unit::TestCase
       end
       
       parser = TestParser2.new
-      parser.instance_variable_get("@options") == Wankel::Parser::DEFAULTS.merge({:hello => true})
+      parser.instance_variable_get("@options") == Wankel::DEFAULTS.merge({:hello => true})
   end
   
   test 'default options merged with options inherited from Wankel && Class' do
@@ -46,7 +46,7 @@ class Wankel::SaxParserTest < ::Test::Unit::TestCase
       end
       
       parser = TestParser3.new(:metoo => false)
-      parser.instance_variable_get("@options") == Wankel::Parser::DEFAULTS.merge({:hello => true, :metoo => false})
+      parser.instance_variable_get("@options") == Wankel::DEFAULTS.merge({:hello => true, :metoo => false})
   end
   
   test "on_map_start callback" do
