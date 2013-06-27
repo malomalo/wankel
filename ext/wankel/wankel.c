@@ -34,6 +34,9 @@ void Init_wankel() {
 
     rb_define_singleton_method(c_wankel, "parse", wankel_parse, -1);
     rb_define_singleton_method(c_wankel, "encode", wankel_encode, -1);
+	
+    rb_define_singleton_method(c_wankel, "load", wankel_parse, -1);
+    rb_define_singleton_method(c_wankel, "dump", wankel_encode, -1);
     
     c_wankelParser = Init_wankel_parser();
     c_wankelEncoder = Init_wankel_encoder();

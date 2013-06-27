@@ -50,15 +50,14 @@ static VALUE wankelParser_initialize(int argc, VALUE * argv, VALUE self) {
         rb_iv_set(self, "@options", rb_funcall(defaults, intern_merge, 1, options) );
     }
     options = rb_iv_get(self, "@options");
-
+    rbufsize = rb_hash_aref(options, sym_read_buffer_size);
+    Check_Type(rbufsize, T_FIXNUM);
+	
     Data_Get_Struct(self, wankel_parser, p);
     p->alloc_funcs.malloc = yajl_helper_malloc;
     p->alloc_funcs.realloc = yajl_helper_realloc;
     p->alloc_funcs.free = yajl_helper_free;
     p->h = yajl_alloc(&callbacks, &p->alloc_funcs, (void *)p);
-    
-    rbufsize = rb_hash_aref(options, sym_read_buffer_size);
-    Check_Type(rbufsize, T_FIXNUM);
     p->rbufsize = rbufsize;
 
     if(rb_hash_aref(options, sym_symbolize_keys) == Qtrue) {
@@ -154,13 +153,18 @@ ID Init_wankel_parser() {
 }
 // Ruby GC ===================================================================
 static VALUE wankel_alloc(VALUE klass) {
+	VALUE self;
     wankel_parser * p;
-    return Data_Make_Struct(klass, wankel_parser, wankel_mark, wankel_free, p);
+	self = Data_Make_Struct(klass, wankel_parser, wankel_mark, wankel_free, p);
+	p->h = 0;
+	return self;
 }
 
 static void wankel_free(void * handle) {
     wankel_parser * p = handle;
-    yajl_free(p->h);
+	if (p->h){
+		yajl_free(p->h);
+	}
 }
 
 static void wankel_mark(void * handle) {
