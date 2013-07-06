@@ -8,3 +8,4 @@ coverage
 *.o
 *.log
 Makefile
+tmp

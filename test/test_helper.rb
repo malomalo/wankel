@@ -1,5 +1,12 @@
-# To make testing/debugging easier, test within this source tree versus an installed gem
+if ENV['COVERALLS_REPO_TOKEN']
+  require 'simplecov'
+  SimpleCov.start do
+    add_filter "/test/"
+  end
+end
 
+# To make testing/debugging easier, test within this source tree versus an
+# installed gem
 dir = File.dirname(__FILE__)
 root = File.expand_path(File.join(dir, '..'))
 lib = File.expand_path(File.join(root, 'lib'))
