@@ -221,7 +221,7 @@ class Wankel::EncoderTest < ::Test::Unit::TestCase
   end
   
   test "output must be a an IO" do
-    assert_raises Wankel::EncodeError do
+    assert_raises Wankel::EncodeError, "output must be a an IO" do
       output = ""
       Wankel.encode(TheMindKillerDuce.new, "")
     end

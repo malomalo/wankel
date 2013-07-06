@@ -1,5 +1,44 @@
 #include "wankel_parser.h"
- 
+
+// Callbacks =================================================================
+static int wankel_parse_callback_on_null(void *ctx);
+static int wankel_parse_callback_on_boolean(void *ctx, int boolVal);
+// static int wankel_parse_callback_on_integer(void *ctx, long long integerVal);
+// static int wankel_parse_callback_on_double(void *ctx, double doubleVal);
+static int wankel_parse_callback_on_number(void *ctx, const char * numberVal, size_t numberLen);
+static int wankel_parse_callback_on_string(void *ctx, const unsigned char * stringVal, size_t stringLen);
+static int wankel_parse_callback_on_map_start(void *ctx);
+static int wankel_parse_callback_on_map_key(void *ctx, const unsigned char * key, size_t keyLen);
+static int wankel_parse_callback_on_map_end(void *ctx);
+static int wankel_parse_callback_on_array_start(void *ctx);
+static int wankel_parse_callback_on_array_end(void *ctx);
+
+static yajl_callbacks callbacks = {
+    wankel_parse_callback_on_null,
+    wankel_parse_callback_on_boolean,
+    NULL,
+    NULL,
+    wankel_parse_callback_on_number,
+    wankel_parse_callback_on_string,
+    wankel_parse_callback_on_map_start,
+    wankel_parse_callback_on_map_key,
+    wankel_parse_callback_on_map_end,
+    wankel_parse_callback_on_array_start,
+    wankel_parse_callback_on_array_end
+};
+
+// Ruby GC ===================================================================
+static VALUE wankel_alloc(VALUE klass);
+static void wankel_free(void * handle);
+static void wankel_mark(void * handle);
+
+static ID intern_io_read, intern_clone, intern_merge, intern_call,
+   intern_DEFAULTS, sym_multiple_values;
+   
+static ID sym_read_buffer_size, sym_symbolize_keys; 
+
+static VALUE c_wankel, c_wankelParser, e_parseError, e_encodeError;
+
 /*
  * Document-method: new
  *
@@ -57,7 +96,6 @@ static VALUE wankelParser_initialize(int argc, VALUE * argv, VALUE self) {
     p->alloc_funcs.malloc = yajl_helper_malloc;
     p->alloc_funcs.realloc = yajl_helper_realloc;
     p->alloc_funcs.free = yajl_helper_free;
-    p->h = yajl_alloc(&callbacks, &p->alloc_funcs, (void *)p);
     p->rbufsize = rbufsize;
 
     if(rb_hash_aref(options, sym_symbolize_keys) == Qtrue) {
@@ -65,8 +103,6 @@ static VALUE wankelParser_initialize(int argc, VALUE * argv, VALUE self) {
     } else {
         p->symbolize_keys = 0;
     }
-
-    yajl_configure(p->h, options);
     
     return self;
 }
@@ -87,7 +123,8 @@ static VALUE wankelParser_parse(int argc, VALUE * argv, VALUE self) {
     unsigned int len;
     yajl_status status;
     wankel_parser * p;
-    VALUE input, options, callback;
+    VALUE input, callback;
+	VALUE options = rb_iv_get(self, "@options");
     rb_scan_args(argc, argv, "11", &input, &callback); // Hack, cuz i'm not sure how to call a method with a block from c
     
     if(callback == Qnil && rb_block_given_p()) {
@@ -95,6 +132,8 @@ static VALUE wankelParser_parse(int argc, VALUE * argv, VALUE self) {
     }
         
     Data_Get_Struct(self, wankel_parser, p);
+    p->h = yajl_alloc(&callbacks, &p->alloc_funcs, (void *)p);
+    yajl_configure(p->h, options);
     p->callback = callback;
     p->stack = rb_ary_new();
     p->stack_index = 0;
@@ -117,10 +156,9 @@ static VALUE wankelParser_parse(int argc, VALUE * argv, VALUE self) {
     
     status = yajl_complete_parse(p->h);
     if(status != yajl_status_ok) {
-        rb_raise(e_parseError, "Error completing parse"); //(const char*)
+        rb_raise(e_parseError, "Error completing parse");
     }
 
-    options = rb_iv_get(self, "@options");
     if(rb_block_given_p()) {
         return Qnil;
     } else if(rb_hash_aref(options, sym_multiple_values) == Qtrue) {
@@ -178,11 +216,9 @@ static void wankel_builder_push(void *ctx, VALUE val) {
     int len;
 	wankel_parser * p = ctx;
     VALUE lastEntry, hash;
-    len = (int)RARRAY_LEN(p->stack);
     
-    // rb_funcall(rb_const_get(rb_cObject,rb_intern("Kernel")), rb_intern("puts"), 1, INT2FIX(p->stack_index));
-    // rb_funcall(rb_const_get(rb_cObject,rb_intern("Kernel")), rb_intern("puts"), 1, rb_funcall(p->stack, rb_intern("join"), 1, rb_str_new2(",")));
     if (p->stack_index > 0) {
+		len = (int)RARRAY_LEN(p->stack);
         lastEntry = rb_ary_entry(p->stack, len-1);
         switch (TYPE(lastEntry)) {
             case T_ARRAY:
@@ -217,25 +253,25 @@ static void wankel_builder_push(void *ctx, VALUE val) {
     }
 }
 
-int wankel_parse_callback_on_null(void *ctx) {
+static int wankel_parse_callback_on_null(void *ctx) {
 	wankel_builder_push(ctx, Qnil);
     return 1;
 }
 
-int wankel_parse_callback_on_boolean(void *ctx, int boolVal) {
+static int wankel_parse_callback_on_boolean(void *ctx, int boolVal) {
 	wankel_builder_push(ctx, boolVal ? Qtrue : Qfalse);
     return 1;
 }
 
-int wankel_parse_callback_on_integer(void *ctx, long long integerVal) {
-	wankel_builder_push(ctx, LL2NUM(integerVal));
-    return 1;
-}
-int wankel_parse_callback_on_double(void *ctx, double doubleVal) {
-	wankel_builder_push(ctx, rb_float_new(doubleVal));
-    return 1;
-}
-int wankel_parse_callback_on_number(void * ctx, const char * numberVal, size_t numberLen){
+// static int wankel_parse_callback_on_integer(void *ctx, long long integerVal) {
+// 	wankel_builder_push(ctx, LL2NUM(integerVal));
+//     return 1;
+// }
+// static int wankel_parse_callback_on_double(void *ctx, double doubleVal) {
+// 	wankel_builder_push(ctx, rb_float_new(doubleVal));
+//     return 1;
+// }
+static int wankel_parse_callback_on_number(void * ctx, const char * numberVal, size_t numberLen){
 	char buf[numberLen+1];
     buf[numberLen] = 0;
     memcpy(buf, numberVal, numberLen);
@@ -247,7 +283,7 @@ int wankel_parse_callback_on_number(void * ctx, const char * numberVal, size_t n
 	}
 	return 1;
 }
-int wankel_parse_callback_on_string(void *ctx, const unsigned char * stringVal, size_t stringLen) {
+static int wankel_parse_callback_on_string(void *ctx, const unsigned char * stringVal, size_t stringLen) {
 	VALUE str = rb_str_new((const char *)stringVal, stringLen);
 	rb_encoding *default_internal_enc = rb_default_internal_encoding();
     rb_enc_associate(str, rb_utf8_encoding());
@@ -258,11 +294,11 @@ int wankel_parse_callback_on_string(void *ctx, const unsigned char * stringVal, 
 	wankel_builder_push(ctx, str);
     return 1;
 }
-int wankel_parse_callback_on_map_start(void *ctx) {
+static int wankel_parse_callback_on_map_start(void *ctx) {
 	wankel_builder_push(ctx, rb_hash_new());
     return 1;
 }
-int wankel_parse_callback_on_map_key(void *ctx, const unsigned char * key, size_t keyLen) {
+static int wankel_parse_callback_on_map_key(void *ctx, const unsigned char * key, size_t keyLen) {
 	wankel_parser * p = ctx;
 	rb_encoding *default_internal_enc = rb_default_internal_encoding();
 	VALUE str = rb_str_new((const char *)key, keyLen);
@@ -279,7 +315,7 @@ int wankel_parse_callback_on_map_key(void *ctx, const unsigned char * key, size_
 	
     return 1;
 }
-int wankel_parse_callback_on_map_end(void *ctx) {
+static int wankel_parse_callback_on_map_end(void *ctx) {
     wankel_parser * p = ctx;
     p->stack_index--;
     
@@ -291,11 +327,11 @@ int wankel_parse_callback_on_map_end(void *ctx) {
     
     return 1;
 }
-int wankel_parse_callback_on_array_start(void *ctx) {
+static int wankel_parse_callback_on_array_start(void *ctx) {
 	wankel_builder_push(ctx, rb_ary_new());
     return 1;
 }
-int wankel_parse_callback_on_array_end(void *ctx) {
+static int wankel_parse_callback_on_array_end(void *ctx) {
 	wankel_parser * p = ctx;
     p->stack_index--;
     

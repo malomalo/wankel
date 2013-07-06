@@ -13,8 +13,4 @@
 
 void Init_wankel();
 
-static VALUE c_wankel, c_wankelParser, c_wankelEncoder, e_parseError, e_encodeError;
-
-static ID intern_new, intern_parse, intern_encode;
-
 #endif

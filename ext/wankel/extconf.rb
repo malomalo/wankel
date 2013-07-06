@@ -1,7 +1,7 @@
 require 'mkmf'
 require 'rbconfig'
 
-$CFLAGS << ' -Wall -funroll-loops'
+$CFLAGS << '-Wall'
 
 if ARGV.include?('--coverage')
   $CFLAGS << " -fprofile-arcs  -ftest-coverage"

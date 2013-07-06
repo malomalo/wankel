@@ -1,5 +1,9 @@
 #include "wankel.h"
 
+static ID intern_new, intern_parse, intern_encode;
+
+static VALUE c_wankel, c_wankelParser, c_wankelEncoder, e_parseError, e_encodeError;
+
 // Class Methods =============================================================
 static VALUE wankel_parse(int argc, VALUE * argv, VALUE klass) {
     VALUE parser, input, options, callback;

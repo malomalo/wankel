@@ -1,6 +1,35 @@
 #include "wankel_sax_parser.h"
 
-static VALUE sax_parser_initialize(int argc, VALUE * argv, VALUE self) {
+static VALUE sax_parser_initialize(int argc, VALUE * argv, VALUE self);
+
+static ID  sym_read_buffer_size, sym_symbolize_keys;
+
+static ID  intern_io_read, intern_merge, intern_clone, intern_DEFAULTS;
+
+static ID  intern_on_null, intern_on_boolean, intern_on_integer,
+    intern_on_double, intern_on_string, intern_on_map_start, intern_on_map_key,
+    intern_on_map_end, intern_on_array_start, intern_on_array_end;
+	
+static VALUE c_wankel, c_wankelParser, c_saxParser, e_parseError, e_encodeError;
+		   
+// Callbacks =================================================================
+yajl_callbacks sax_parser_callbacks(VALUE self);
+int sax_parser_callback_on_null(void *ctx);
+int sax_parser_callback_on_boolean(void *ctx, int boolVal);
+int sax_parser_callback_on_number(void *ctx, const char * numberVal, size_t numberLen);
+int sax_parser_callback_on_string(void *ctx, const unsigned char * stringVal, size_t stringLen);
+int sax_parser_callback_on_map_start(void *ctx);
+int sax_parser_callback_on_map_key(void *ctx, const unsigned char * key, size_t keyLen);
+int sax_parser_callback_on_map_end(void *ctx);
+int sax_parser_callback_on_array_start(void *ctx);
+int sax_parser_callback_on_array_end(void *ctx);
+
+// Ruby GC ===================================================================
+VALUE sax_parser_alloc(VALUE);
+//void sax_parser_mark(void *);
+void sax_parser_free(void * parser);
+
+VALUE sax_parser_initialize(int argc, VALUE * argv, VALUE self) {
     VALUE defaults = rb_const_get(c_wankel, intern_DEFAULTS);
     VALUE klass = rb_funcall(self, rb_intern("class"), 0);
     VALUE options, rbufsize;
@@ -42,7 +71,7 @@ static VALUE sax_parser_initialize(int argc, VALUE * argv, VALUE self) {
 
 static VALUE sax_parser_parse(int argc, VALUE * argv, VALUE self) {
     const char * cptr;
-    unsigned int len;
+    size_t len;
     yajl_status status;
     sax_parser * p;
     VALUE input;
@@ -67,7 +96,7 @@ static VALUE sax_parser_parse(int argc, VALUE * argv, VALUE self) {
     }
     
     status = yajl_complete_parse(p->h);
-    yajl_helper_check_status(p->h, status, 0, NULL, NULL);
+    yajl_helper_check_status(p->h, status, 0, NULL, 0);
     
     return Qnil;
 }
@@ -103,7 +132,7 @@ void Init_wankel_sax_parser() {
 }
 
 // Callbacks =================================================================
-static yajl_callbacks sax_parser_callbacks(VALUE self) {
+yajl_callbacks sax_parser_callbacks(VALUE self) {
     yajl_callbacks callbacks = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 
     if(rb_respond_to(self, intern_on_null)) {
@@ -138,21 +167,21 @@ static yajl_callbacks sax_parser_callbacks(VALUE self) {
     return callbacks;
 }
 
-static int sax_parser_callback_on_null(void *ctx) {
+int sax_parser_callback_on_null(void *ctx) {
     rb_funcall((VALUE)ctx, intern_on_null, 0);
     return 1;
 }
 
-static int sax_parser_callback_on_boolean(void *ctx, int boolVal) {
+int sax_parser_callback_on_boolean(void *ctx, int boolVal) {
     rb_funcall((VALUE)ctx, intern_on_boolean, 1, (boolVal ? Qtrue : Qfalse));
     return 1;
 }
 
-static int sax_parser_callback_on_number(void *ctx, const char * numberVal, size_t numberLen) {
+int sax_parser_callback_on_number(void *ctx, const char * numberVal, size_t numberLen) {
 	char buf[numberLen+1];
 	buf[numberLen] = 0;
 	memcpy(buf, numberVal, numberLen);
-	VALUE obj = ctx;
+	VALUE obj = (VALUE)ctx;
 
 	if (memchr(buf, '.', numberLen) || memchr(buf, 'e', numberLen) || memchr(buf, 'E', numberLen)) {
 		if (rb_respond_to(obj, intern_on_double)) {
@@ -166,38 +195,38 @@ static int sax_parser_callback_on_number(void *ctx, const char * numberVal, size
 	return 1;
 }
 
-static int sax_parser_callback_on_string(void *ctx, const char * stringVal, size_t stringLen) {
-    rb_funcall((VALUE)ctx, intern_on_string, 1, rb_str_new(stringVal, stringLen));
+int sax_parser_callback_on_string(void *ctx, const unsigned char * stringVal, size_t stringLen) {
+    rb_funcall((VALUE)ctx, intern_on_string, 1, rb_str_new((const char *) stringVal, stringLen));
     return 1;
 }
-static int sax_parser_callback_on_map_start(void *ctx) {
+int sax_parser_callback_on_map_start(void *ctx) {
     rb_funcall((VALUE)ctx, intern_on_map_start, 0);
     return 1;
 }
-static int sax_parser_callback_on_map_key(void *ctx, const unsigned char * key, size_t keyLen) {
-    rb_funcall((VALUE)ctx, intern_on_map_key, 1, rb_str_new(key, keyLen));
+int sax_parser_callback_on_map_key(void *ctx, const unsigned char * key, size_t keyLen) {
+    rb_funcall((VALUE)ctx, intern_on_map_key, 1, rb_str_new((const char *)key, keyLen));
     return 1;
 }
-static int sax_parser_callback_on_map_end(void *ctx) {
+int sax_parser_callback_on_map_end(void *ctx) {
     rb_funcall((VALUE)ctx, intern_on_map_end, 0);
     return 1;
 }
-static int sax_parser_callback_on_array_start(void *ctx) {
+int sax_parser_callback_on_array_start(void *ctx) {
     rb_funcall((VALUE)ctx, intern_on_array_start, 0);
     return 1;
 }
-static int sax_parser_callback_on_array_end(void *ctx) {
+int sax_parser_callback_on_array_end(void *ctx) {
     rb_funcall((VALUE)ctx, intern_on_array_end, 0);
     return 1;
 }
 
 // Ruby GC ===================================================================
-static VALUE sax_parser_alloc(VALUE klass) {
+VALUE sax_parser_alloc(VALUE klass) {
     sax_parser * p;
     return Data_Make_Struct(klass, sax_parser, 0, sax_parser_free, p);
 }
 
-static void sax_parser_free(void * handle) {
+void sax_parser_free(void * handle) {
     sax_parser * p = handle;
 	yajl_free(p->h);
 }

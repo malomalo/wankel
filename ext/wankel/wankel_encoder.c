@@ -1,5 +1,10 @@
 #include "wankel_encoder.h"
-#include <stdio.h>
+
+VALUE c_wankel, c_wankelEncoder, e_parseError, e_encodeError;
+
+ID intern_to_s, intern_keys, intern_io_write, intern_to_json, intern_clone, intern_merge, intern_DEFAULTS;
+
+ID sym_beautify, sym_indent_string, sym_validate_utf8, sym_escape_solidus;
 
 /*
  * Document-method: new
