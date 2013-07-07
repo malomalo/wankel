@@ -1,10 +1,16 @@
+// TODO: i should use the Wankel::SaxEncoder?
 #include "wankel_encoder.h"
 
-VALUE c_wankel, c_wankelEncoder, e_parseError, e_encodeError;
+static VALUE c_wankel, c_wankelEncoder, e_encodeError;
 
-ID intern_to_s, intern_keys, intern_io_write, intern_to_json, intern_clone, intern_merge, intern_DEFAULTS;
+static ID intern_to_s, intern_keys, intern_io_write, intern_to_json, intern_clone, intern_merge, intern_DEFAULTS;
 
-ID sym_beautify, sym_indent_string, sym_validate_utf8, sym_escape_solidus;
+static ID sym_beautify, sym_indent_string, sym_validate_utf8, sym_escape_solidus;
+
+
+static void wankelEncoder_flush(yajl_gen g, VALUE io, int write_buffer_size);
+static void yajl_encode_part(yajl_gen g, VALUE obj, VALUE io, int write_buffer_size);
+static void wankelEncoder_flush(yajl_gen g, VALUE io, int write_buffer_size);
 
 /*
  * Document-method: new
@@ -205,7 +211,6 @@ void yajl_encode_part(yajl_gen g, VALUE obj, VALUE io, int write_buffer_size) {
 ID Init_wankel_encoder() {
     c_wankel = rb_const_get(rb_cObject, rb_intern("Wankel"));
     c_wankelEncoder = rb_define_class_under(c_wankel, "Encoder", rb_cObject);
-    e_parseError = rb_const_get(c_wankel, rb_intern("ParseError"));
     e_encodeError = rb_const_get(c_wankel, rb_intern("EncodeError"));
 
     rb_define_method(c_wankelEncoder, "initialize", wankelEncoder_initialize, -1);

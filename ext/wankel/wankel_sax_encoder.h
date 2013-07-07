@@ -1,5 +1,5 @@
-#ifndef WANKEL_ENCODER
-#define WANKEL_ENCODER
+#ifndef WANKEL_SAX_ENCODER
+#define WANKEL_SAX_ENCODER
 
 #include <ruby.h>
 #include <ruby/encoding.h>
@@ -8,6 +8,6 @@
 
 #include "yajl_helpers.h"
 
-ID Init_wankel_encoder();
+void Init_wankel_sax_encoder();
 
 #endif

@@ -9,6 +9,7 @@
 #include "wankel_parser.h"
 #include "wankel_encoder.h"
 #include "wankel_sax_parser.h"
+#include "wankel_sax_encoder.h"
 #include "yajl_helpers.h"
 
 void Init_wankel();

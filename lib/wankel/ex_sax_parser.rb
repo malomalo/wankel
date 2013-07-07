@@ -41,3 +41,35 @@ class Wankel::SaxParser
   end
 
 end
+
+
+class Wankel::SaxEncoder
+
+  def number
+  end
+  
+  def string
+  end
+  
+  def null
+  end
+  
+  def bool
+  end
+  
+  def map_open
+  end
+  
+  def map_close
+  end
+  
+  def array_open
+  end
+  
+  def array_close
+  end
+  
+  def complete
+  end
+
+end
