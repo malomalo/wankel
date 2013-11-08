@@ -122,6 +122,8 @@ end # Perf
 
 @json = '{"a":"Alpha","b":true,"c":12345,"d":[true,[false,{"12345":12345,"nil":null},3.967,{"x":"something","y":false,"z":true},null]],"e":{"one":1,"two":2},"f":null,"g":12345678901234567890123456789,"h":{"a":{"b":{"c":{"d":{"e":{"f":{"g":null}}}}}}},"i":[[[[[[[null]]]]]]]}'
 @json = '{}'
+@json = File.read('./benchmark/subjects/ohai.json')
+
 puts '-' * 80
 puts "Parse Performance"
 perf = Perf.new()
@@ -130,4 +132,4 @@ perf.add('Yajl', 'parse') { Yajl::Parser.parse(@json) }
 perf.add('Oj::Doc', 'parse') { Oj.load(@json) }
 parser = Wankel::Parser.new
 perf.add('Wankel', 'parse') { parser.parse(@json) }
-perf.run(100000)
+perf.run(1000)

@@ -1,6 +1,28 @@
 #include "wankel.h"
 #include "yajl_helpers.h"
 
+static VALUE sym_allow_comments;
+static VALUE sym_validate_strings;
+static VALUE sym_trailing_garbage;
+static VALUE sym_multiple_values;
+static VALUE sym_partial_values;
+static VALUE sym_beautify;
+static VALUE sym_indent_string;
+static VALUE sym_validate_utf8;
+static VALUE sym_escape_solidus;
+
+void Init_yajl_helpers() {
+    sym_allow_comments = ID2SYM(rb_intern("allow_comments")); rb_gc_register_address(&sym_allow_comments);
+    sym_validate_strings = ID2SYM(rb_intern("validate_strings")); rb_gc_register_address(&sym_validate_strings);
+    sym_trailing_garbage = ID2SYM(rb_intern("trailing_garbage")); rb_gc_register_address(&sym_trailing_garbage);
+    sym_multiple_values = ID2SYM(rb_intern("multiple_values")); rb_gc_register_address(&sym_multiple_values);
+    sym_partial_values = ID2SYM(rb_intern("partial_values")); rb_gc_register_address(&sym_partial_values);
+    sym_beautify = ID2SYM(rb_intern("beautify")); rb_gc_register_address(&sym_beautify);
+    sym_indent_string = ID2SYM(rb_intern("indent_string")); rb_gc_register_address(&sym_indent_string);
+    sym_validate_utf8 = ID2SYM(rb_intern("validate_utf8")); rb_gc_register_address(&sym_validate_utf8);
+    sym_escape_solidus = ID2SYM(rb_intern("escape_solidus")); rb_gc_register_address(&sym_escape_solidus);
+}
+
 // Yajl Helpers ==============================================================
 void yajl_helper_check_status(yajl_handle handle, yajl_status status, int verbose, const unsigned char * jsonText, size_t jsonTextLength) {
     if(status != yajl_status_ok) {
@@ -48,31 +70,31 @@ void yajl_helper_free(void *ctx, void *ptr) {
 
 // Configure
 void yajl_configure(yajl_handle handle, VALUE options) {
-    if(rb_hash_aref(options, ID2SYM(rb_intern("allow_comments")) ) == Qtrue) {
+    if(rb_hash_aref(options, sym_allow_comments) == Qtrue) {
         yajl_config(handle, yajl_allow_comments, 1);
     } else {
         yajl_config(handle, yajl_allow_comments, 0);
     }
 
-    if(rb_hash_aref(options, ID2SYM(rb_intern("validate_strings")) ) == Qtrue) {
+    if(rb_hash_aref(options, sym_validate_strings) == Qtrue) {
         yajl_config(handle, yajl_dont_validate_strings, 0);
     } else {
         yajl_config(handle, yajl_dont_validate_strings, 1);
     }
 
-    if(rb_hash_aref(options, ID2SYM(rb_intern("trailing_garbage")) ) == Qtrue) {
+    if(rb_hash_aref(options, sym_trailing_garbage) == Qtrue) {
         yajl_config(handle, yajl_allow_trailing_garbage, 1);
     } else {
         yajl_config(handle, yajl_allow_trailing_garbage, 0);
     }
 
-    if(rb_hash_aref(options, ID2SYM(rb_intern("multiple_values")) ) == Qtrue) {
+    if(rb_hash_aref(options, sym_multiple_values) == Qtrue) {
         yajl_config(handle, yajl_allow_multiple_values, 1);
     } else {
         yajl_config(handle, yajl_allow_multiple_values, 0);
     }
 
-    if(rb_hash_aref(options, ID2SYM(rb_intern("partial_values")) ) == Qtrue) {
+    if(rb_hash_aref(options, sym_partial_values) == Qtrue) {
         yajl_config(handle, yajl_allow_partial_values, 1);
     } else {
         yajl_config(handle, yajl_allow_partial_values, 0);
@@ -80,21 +102,21 @@ void yajl_configure(yajl_handle handle, VALUE options) {
 }
 
 void yajl_gen_configure(yajl_gen g, VALUE options) {
-    if(rb_hash_aref(options, ID2SYM(rb_intern("beautify")) ) == Qtrue) {
+    if(rb_hash_aref(options, sym_beautify) == Qtrue) {
 		yajl_gen_config(g, yajl_gen_beautify, 1);
 	} else {
 		yajl_gen_config(g, yajl_gen_beautify, 0);
 	}
 	
- 	yajl_gen_config(g, yajl_gen_indent_string, RSTRING_PTR(rb_hash_aref(options, ID2SYM(rb_intern("indent_string")))));
+ 	yajl_gen_config(g, yajl_gen_indent_string, RSTRING_PTR(rb_hash_aref(options, sym_indent_string)));
 	
-    if(rb_hash_aref(options, ID2SYM(rb_intern("validate_utf8")) ) == Qtrue) {
+    if(rb_hash_aref(options, sym_validate_utf8) == Qtrue) {
 		yajl_gen_config(g, yajl_gen_validate_utf8, 1);
 	} else {
 		yajl_gen_config(g, yajl_gen_validate_utf8, 0);
 	}
 	
-    if(rb_hash_aref(options, ID2SYM(rb_intern("escape_solidus")) ) == Qtrue) {
+    if(rb_hash_aref(options, sym_escape_solidus ) == Qtrue) {
 		yajl_gen_config(g, yajl_gen_escape_solidus, 1);
 	} else {
 		yajl_gen_config(g, yajl_gen_escape_solidus, 0);

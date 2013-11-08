@@ -45,5 +45,6 @@ void Init_wankel() {
     c_wankelParser = Init_wankel_parser();
     c_wankelEncoder = Init_wankel_encoder();
     Init_wankel_sax_parser();
-	Init_wankel_sax_encoder();
+    Init_wankel_sax_encoder();
+    Init_yajl_helpers();
 }

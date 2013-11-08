@@ -33,7 +33,7 @@ static void wankel_free(void * handle);
 static void wankel_mark(void * handle);
 
 static ID intern_io_read, intern_clone, intern_merge, intern_call,
-   intern_DEFAULTS, sym_multiple_values;
+          intern_DEFAULTS, sym_multiple_values;
    
 static ID sym_read_buffer_size, sym_symbolize_keys; 
 
@@ -124,7 +124,7 @@ static VALUE wankelParser_parse(int argc, VALUE * argv, VALUE self) {
     yajl_status status;
     wankel_parser * p;
     VALUE input, callback;
-	VALUE options = rb_iv_get(self, "@options");
+    VALUE options = rb_iv_get(self, "@options");
     rb_scan_args(argc, argv, "11", &input, &callback); // Hack, cuz i'm not sure how to call a method with a block from c
     
     if(callback == Qnil && rb_block_given_p()) {
@@ -158,7 +158,7 @@ static VALUE wankelParser_parse(int argc, VALUE * argv, VALUE self) {
     if(status != yajl_status_ok) {
         rb_raise(e_parseError, "Error completing parse");
     }
-
+    
     if(rb_block_given_p()) {
         return Qnil;
     } else if(rb_hash_aref(options, sym_multiple_values) == Qtrue) {
@@ -214,11 +214,11 @@ static void wankel_mark(void * handle) {
 // Parse Builder =============================================================
 static void wankel_builder_push(void *ctx, VALUE val) {
     int len;
-	wankel_parser * p = ctx;
+    wankel_parser * p = ctx;
     VALUE lastEntry, hash;
     
     if (p->stack_index > 0) {
-		len = (int)RARRAY_LEN(p->stack);
+        len = (int)RARRAY_LEN(p->stack);
         lastEntry = rb_ary_entry(p->stack, len-1);
         switch (TYPE(lastEntry)) {
             case T_ARRAY:
