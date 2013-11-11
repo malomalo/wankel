@@ -9,6 +9,7 @@ stream parsing and generation.
 Features
 --------
 
+* SAX style JSON parsing and encoding
 * JSON parsing and encoding directly to and from an IO stream (file, socket, etc)
   or String.
 * Parse and encode *multiple* JSON objects to and from streams or strings
