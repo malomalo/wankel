@@ -1,11 +1,11 @@
 Gem::Specification.new do |s|
   s.name = 'wankel'
-  s.version = '1.0.0'
+  s.version = '0.1.0'
   s.authors = ['Jon Bracy']
   s.email = ['jonbracy@gmail.com']
   s.homepage = 'http://wankelrb.com'
-  s.summary = 'SAX based parser for JSON'
-  s.description = 'SAX based parser for JSON'
+  s.summary = 'SAX based JSON parser and encoder'
+  s.description = 'SAX based JSON parser and encoder'
   
   s.rubyforge_project = "wankel"
 
@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
   s.require_paths = ['lib']
 
-  s.required_ruby_version = '>= 1.9.3'
+  s.required_ruby_version = '>= 2.0.0'
   
   s.add_development_dependency 'rake-compiler'
   s.add_development_dependency 'minitest'
