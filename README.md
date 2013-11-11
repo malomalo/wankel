@@ -1,4 +1,4 @@
-<a href="vikingjs.org">![Wankel](/logo.jpg)</a>
+<a href="vikingjs.org">![Wankel](/logo.png)</a>
 
 Wankel is a Ruby gem that provides C bindings to the [YAJL 2](http://lloyd.github.io/yajl/)
 C Library.
