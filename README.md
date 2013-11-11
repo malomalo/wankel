@@ -20,7 +20,7 @@ Features
 Dependencies
 ------------
 
-Wankel only dependency is (YAJL)[http://lloyd.github.io/yajl/] version 2.
+Wankel only dependency is [YAJL](http://lloyd.github.io/yajl/) version 2.
 
 You can install it with homebrew via:
 
