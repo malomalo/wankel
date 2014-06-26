@@ -24,6 +24,19 @@ class Wankel::OneOffParseTest < Minitest::Test
     Wankel.parse("[\"#{"\201\203"}\"]", :check_utf8 => false)
   end
   
+  test "should not allow trailing garbage with :allow_trailing_garbage set to false" do
+    assert_raises Wankel::ParseError do
+      Wankel.parse('{"key": "value"}gar', :allow_trailing_garbage => false)
+    end
+  end
+  
+  test "should allow trailing garbage with :allow_trailing_garbage set to true" do
+    assert_equal(
+      {"key" => "value"},
+      Wankel.parse('{"key": "value"}gar', :allow_trailing_garbage => true)
+    )
+  end
+  
   test "should parse using it's class method, from an IO" do
     io = StringIO.new('{"key": 1234}')
     assert_equal({'key' => 1234}, Wankel.parse(io))
