@@ -14,14 +14,14 @@ class Wankel::OneOffParseTest < Minitest::Test
     end
   end
   
-  test "should not parse invalid UTF8 with :check_utf8 set to true" do
+  test "should not parse invalid UTF8 with :validate_utf8 set to true" do
     assert_raises Wankel::ParseError do
-      Wankel.parse("[\"#{"\201\203"}\"]", :check_utf8 => true)
+      Wankel.parse("[\"#{"\201\203"}\"]", :validate_utf8 => true)
     end
   end
 
-  test "should parse invalid UTF8 with :check_utf8 set to false" do
-    Wankel.parse("[\"#{"\201\203"}\"]", :check_utf8 => false)
+  test "should parse invalid UTF8 with :validate_utf8 set to false" do
+    Wankel.parse("[\"#{"\201\203"}\"]", :validate_utf8 => false)
   end
   
   test "should not allow trailing garbage with :allow_trailing_garbage set to false" do

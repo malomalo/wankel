@@ -5,7 +5,7 @@ class Wankel
       :read_buffer_size => 8092,
       :symbolize_keys => false,
       :allow_comments => false,
-      :check_utf8 => false,
+      :validate_utf8 => false,
       :allow_trailing_garbage => false,
       :multiple_values => false,
       :allow_partial_values => false,

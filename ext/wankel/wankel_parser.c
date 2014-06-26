@@ -50,7 +50,7 @@ static VALUE c_wankel, c_wankelParser, e_parseError, e_encodeError;
  * +:allow_comments+ will ignore javascript style comments in JSON input.
  *                   Default `false`.
  *
- * +:check_utf8+ will verify that all strings in JSON input are valid UTF8
+ * +:validate_utf8+ will verify that all strings in JSON input are valid UTF8
  *               and will emit a parse error if this is not so. This option
  *               makes parsing slightly more expensive (~7% depending on
  *               processor and compiler in use). Default `false`.
