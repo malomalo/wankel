@@ -16,7 +16,7 @@ class Wankel::OneOffParseTest < Minitest::Test
   
   test "should not parse invalid UTF8 with :check_utf8 set to true" do
     assert_raises Wankel::ParseError do
-      Wankel.parse("[\"#{"\201\203"}\"]", :validate_strings => true)
+      Wankel.parse("[\"#{"\201\203"}\"]", :check_utf8 => true)
     end
   end
 

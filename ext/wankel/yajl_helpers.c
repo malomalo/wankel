@@ -2,8 +2,8 @@
 #include "yajl_helpers.h"
 
 static VALUE sym_allow_comments;
-static VALUE sym_validate_strings;
 static VALUE sym_trailing_garbage;
+static VALUE sym_check_utf8;
 static VALUE sym_multiple_values;
 static VALUE sym_partial_values;
 static VALUE sym_beautify;
@@ -13,8 +13,8 @@ static VALUE sym_escape_solidus;
 
 void Init_yajl_helpers() {
     sym_allow_comments = ID2SYM(rb_intern("allow_comments")); rb_gc_register_address(&sym_allow_comments);
-    sym_validate_strings = ID2SYM(rb_intern("validate_strings")); rb_gc_register_address(&sym_validate_strings);
     sym_trailing_garbage = ID2SYM(rb_intern("trailing_garbage")); rb_gc_register_address(&sym_trailing_garbage);
+    sym_check_utf8 = ID2SYM(rb_intern("check_utf8")); rb_gc_register_address(&sym_check_utf8);
     sym_multiple_values = ID2SYM(rb_intern("multiple_values")); rb_gc_register_address(&sym_multiple_values);
     sym_partial_values = ID2SYM(rb_intern("partial_values")); rb_gc_register_address(&sym_partial_values);
     sym_beautify = ID2SYM(rb_intern("beautify")); rb_gc_register_address(&sym_beautify);
@@ -76,7 +76,7 @@ void yajl_configure(yajl_handle handle, VALUE options) {
         yajl_config(handle, yajl_allow_comments, 0);
     }
 
-    if(rb_hash_aref(options, sym_validate_strings) == Qtrue) {
+    if(rb_hash_aref(options, sym_check_utf8) == Qtrue) {
         yajl_config(handle, yajl_dont_validate_strings, 0);
     } else {
         yajl_config(handle, yajl_dont_validate_strings, 1);

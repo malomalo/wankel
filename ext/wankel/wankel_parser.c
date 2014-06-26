@@ -45,18 +45,18 @@ static VALUE c_wankel, c_wankelParser, e_parseError, e_encodeError;
  * call-seq: new([options])
  *
  * +:symbolize_keys+ will turn hash keys into Ruby symbols, defaults to false.
- *                 Default `false`.
+ *                   Default `false`.
  *
  * +:allow_comments+ will ignore javascript style comments in JSON input.
- *                 Default `false`.
+ *                   Default `false`.
  *
- * +:validate_strings+ will verify that all strings in JSON input are valid UTF8
- *                   and will emit a parse error if this is not so. This option
- * 					 makes parsing slightly more expensive (~7% depending on
- *                   processor and compiler in use). Default `false`.
+ * +:check_utf8+ will verify that all strings in JSON input are valid UTF8
+ *               and will emit a parse error if this is not so. This option
+ *               makes parsing slightly more expensive (~7% depending on
+ *               processor and compiler in use). Default `false`.
  *
  * +:allow_trailing_garbage+ will ensure the entire input text was consumed and
- *                         will raise an error otherwise. Default `false`.
+ *                           will raise an error otherwise. Default `false`.
  *
  * +:multiple_values+ allow multiple values to be parsed by a single parser. The
  *                  entire text must be valid JSON, and values can be seperated
