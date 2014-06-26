@@ -68,7 +68,7 @@ class Wankel::SaxEncoderTest < Minitest::Test
     encoder.complete
     assert_equal("{}", output.string)
   end
-      
+  
   test "array_open" do
     output = StringIO.new
     encoder = Wankel::SaxEncoder.new(output)

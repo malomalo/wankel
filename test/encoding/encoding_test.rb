@@ -128,6 +128,24 @@ class Wankel::EncoderTest < Minitest::Test
     assert_equal(output, result)
   end
   
+  test "should encoder not should validate UTF8 strings when :validate_utf8 set to false" do
+    assert_equal("[\"#{"\201\203"}\"]", Wankel.encode(["#{"\201\203"}"], :validate_utf8 => false))
+  end
+  
+  test "should encoder should validate UTF8 strings when :validate_utf8 set to true" do
+    assert_raises Wankel::EncodeError do
+      Wankel.encode(["#{"\201\203"}"], :validate_utf8 => true)
+    end
+  end
+  
+  test "should encoder should not escape solidus when :escape_solidus set to false" do
+    assert_equal('"/"', Wankel.encode("/", :escape_solidus => false))
+  end
+  
+  test "should encoder should escape solidus when :escape_solidus set to true" do
+    assert_equal('"\/"', Wankel.encode("/", :escape_solidus => true))
+  end
+  
   test "should encode multiple objects into a single stream, to an IO" do
     io = StringIO.new
     obj = {:foo => 1234}
