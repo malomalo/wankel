@@ -1,7 +1,7 @@
 # encoding: UTF-8
 require 'test_helper'
 
-class Wankel::MultipleValuesTest < ::Test::Unit::TestCase
+class Wankel::MultipleValuesTest < Minitest::Test
 
   test "parsing with :multiple_values returns an array of values" do
     assert_equal([true], Wankel.parse('true', :multiple_values => true))
@@ -14,7 +14,7 @@ class Wankel::MultipleValuesTest < ::Test::Unit::TestCase
   end
   
   test "parsing with should raise a Wankel::ParseError error if multiple JSON strings were found when :multiple_values => false" do
-    assert_raise Wankel::ParseError do
+    assert_raises Wankel::ParseError do
       result = Wankel.parse('[{"abc": 123}][{"def": 456}]', :multiple_values => false)
     end
   end

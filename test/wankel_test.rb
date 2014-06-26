@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class WankelTest < ::Test::Unit::TestCase
+class WankelTest < Minitest::Test
 
   test "dump should exist as a class-method" do
     assert(Wankel.respond_to?(:dump))

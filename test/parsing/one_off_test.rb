@@ -1,7 +1,7 @@
 # encoding: UTF-8
 require 'test_helper'
 
-class Wankel::OneOffParseTest < ::Test::Unit::TestCase
+class Wankel::OneOffParseTest < Minitest::Test
   
   test "should parse 23456789012E666 as Infinity" do
     infinity = (1.0/0)
@@ -9,13 +9,13 @@ class Wankel::OneOffParseTest < ::Test::Unit::TestCase
   end
   
   test "should not parse JSON with a comment, with :allow_comments set to false" do
-    assert_raise Wankel::ParseError do
+    assert_raises Wankel::ParseError do
       Wankel.parse('{"key": /* this is a comment */ "value"}', :allow_comments => false)
     end
   end
   
   test "should not parse invalid UTF8 with :check_utf8 set to true" do
-    assert_raise Wankel::ParseError do
+    assert_raises Wankel::ParseError do
       Wankel.parse("[\"#{"\201\203"}\"]", :validate_strings => true)
     end
   end

@@ -1,7 +1,7 @@
 # encoding: UTF-8
 require 'test_helper'
 
-class Wankel::ActiveSupportTest < ::Test::Unit::TestCase
+class Wankel::ActiveSupportTest < Minitest::Test
   
   TESTS = {
     %q({"returnTo":{"\/categories":"\/"}})        => {"returnTo" => {"/categories" => "/"}},
@@ -37,28 +37,24 @@ class Wankel::ActiveSupportTest < ::Test::Unit::TestCase
 
   TESTS.each do |json, expected|
     test "should be able to parse #{json} as an IO" do
-      assert_nothing_raised Wankel::ParseError do
-        Wankel.parse(StringIO.new(json))
-      end
+      Wankel.parse(StringIO.new(json))
     end
   end
 
   TESTS.each do |json, expected|
     test "should be able to parse #{json} as a string" do
-      assert_nothing_raised Wankel::ParseError do
-        Wankel.parse(json)
-      end
+      Wankel.parse(json)
     end
   end
 
   test "should fail parsing {: 1} as an IO" do
-    assert_raise Wankel::ParseError do
+    assert_raises Wankel::ParseError do
       Wankel.parse(StringIO.new("{: 1}"))
     end
   end
 
   test "should fail parsing {: 1} as a string" do
-    assert_raise Wankel::ParseError do
+    assert_raises Wankel::ParseError do
       Wankel.parse("{: 1}")
     end
   end  

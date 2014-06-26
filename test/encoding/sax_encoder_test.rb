@@ -1,6 +1,6 @@
 require 'stringio'
 
-class Wankel::SaxEncoderTest < ::Test::Unit::TestCase
+class Wankel::SaxEncoderTest < Minitest::Test
   
   test 'default inherited from Wankel' do
       encoder = Wankel::SaxEncoder.new(StringIO.new)

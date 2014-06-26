@@ -24,7 +24,7 @@ class TestParser < Wankel::SaxParser
   end
 end
 
-class Wankel::SaxParserTest < ::Test::Unit::TestCase
+class Wankel::SaxParserTest < Minitest::Test
   
   test 'default inherited from Wankel' do
       parser = TestParser.new

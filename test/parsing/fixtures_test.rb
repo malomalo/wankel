@@ -1,7 +1,7 @@
 # encoding: UTF-8
 require 'test_helper'
 
-class Wankel::ParsingJSONFixturesTest < ::Test::Unit::TestCase
+class Wankel::ParsingJSONFixturesTest < Minitest::Test
   
   fixtures = File.join(File.dirname(__FILE__), 'fixtures/*.json')
   passed, failed = Dir[fixtures].partition { |f| f['pass'] }
@@ -10,7 +10,7 @@ class Wankel::ParsingJSONFixturesTest < ::Test::Unit::TestCase
 
   FAILED.each do |name, source|
     test "should not be able to parse #{File.basename(name)} as an IO" do
-      assert_raise Wankel::ParseError do
+      assert_raises Wankel::ParseError do
         Wankel.parse(StringIO.new(source))
       end
     end
@@ -18,7 +18,7 @@ class Wankel::ParsingJSONFixturesTest < ::Test::Unit::TestCase
 
   FAILED.each do |name, source|
     test "should not be able to parse #{File.basename(name)} as a string" do
-      assert_raise Wankel::ParseError do
+      assert_raises Wankel::ParseError do
         Wankel.parse(source)
       end
     end
@@ -26,17 +26,13 @@ class Wankel::ParsingJSONFixturesTest < ::Test::Unit::TestCase
 
   PASSED.each do |name, source|
     test "should be able to parse #{File.basename(name)} as an IO" do
-      assert_nothing_raised Wankel::ParseError do
-        Wankel.parse(StringIO.new(source), :allow_comments => true)
-      end
+      Wankel.parse(StringIO.new(source), :allow_comments => true)
     end
   end
 
   PASSED.each do |name, source|
     test "should be able to parse #{File.basename(name)} as a string" do
-      assert_nothing_raised Wankel::ParseError do
-        Wankel.parse(source, :allow_comments => true)
-      end
+      Wankel.parse(source, :allow_comments => true)
     end
   end
   

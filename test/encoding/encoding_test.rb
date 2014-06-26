@@ -20,7 +20,7 @@ class TheMindKillerDuce
   end
 end
 
-class Wankel::EncoderTest < ::Test::Unit::TestCase
+class Wankel::EncoderTest < Minitest::Test
   FILES = Dir[File.dirname(__FILE__)+'/../../benchmark/subjects/*.json']
   
   FILES.each do |file|

@@ -13,14 +13,16 @@ lib = File.expand_path(File.join(root, 'lib'))
 
 $LOAD_PATH << lib
 
-require 'turn'
-require 'test/unit'
+require "minitest/autorun"
+require 'minitest/unit'
+require 'minitest/reporters'
 require "mocha/setup"
 require 'wankel'
 
+Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
 
 # File 'lib/active_support/testing/declarative.rb', somewhere in rails....
-class ::Test::Unit::TestCase
+class Minitest::Test
   def self.test(name, &block)
     test_name = "test_#{name.gsub(/\s+/,'_')}".to_sym
     defined = instance_method(test_name) rescue false
