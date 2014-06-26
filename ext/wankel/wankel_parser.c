@@ -59,12 +59,11 @@ static VALUE c_wankel, c_wankelParser, e_parseError, e_encodeError;
  *                           will raise an error otherwise. Default `false`.
  *
  * +:multiple_values+ allow multiple values to be parsed by a single parser. The
- *                  entire text must be valid JSON, and values can be seperated
- *                  by any kind of whitespace. Default `false`.
+ *                    entire text must be valid JSON, and values can be seperated
+ *                    by any kind of whitespace. Default `false`.
  *
- * +:allow_partial_values+ check that the top level value was completely consumed/
- *                       Default `false`.
- *
+ * +:allow_partial_values+ check that the top level value was completely consumed
+ *                         Default `false`.
  * 
  * +:read_buffer_size+ is the size of chunk that will be parsed off the input
  *                     (if it's an IO) for each loop of the parsing process.
