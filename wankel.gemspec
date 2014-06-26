@@ -1,14 +1,13 @@
 Gem::Specification.new do |s|
-  s.name = 'wankel'
-  s.version = '0.1.0'
-  s.authors = ['Jon Bracy']
-  s.email = ['jonbracy@gmail.com']
-  s.homepage = 'http://wankelrb.com'
-  s.summary = 'SAX based JSON parser and encoder'
+  s.name        = 'wankel'
+  s.version     = '0.1.0'
+  s.licenses    = ['MIT']
+  s.authors     = ['Jon Bracy']
+  s.email       = ['jonbracy@gmail.com']
+  s.homepage    = 'http://wankelrb.com'
+  s.summary     = 'SAX based JSON parser and encoder'
   s.description = 'SAX based JSON parser and encoder'
   
-  s.rubyforge_project = "wankel"
-
   s.files = `git ls-files`.split("\n")
   s.extensions = ['ext/wankel/extconf.rb']
   s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
