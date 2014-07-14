@@ -101,6 +101,33 @@ static VALUE sax_parser_parse(int argc, VALUE * argv, VALUE self) {
     return Qnil;
 }
 
+static VALUE sax_parser_write(VALUE self, VALUE input) {
+    const char * cptr;
+    size_t len;
+    yajl_status status;
+    sax_parser * p;
+    Data_Get_Struct(self, sax_parser, p);
+    
+    Check_Type(input, T_STRING);
+    cptr = RSTRING_PTR(input);
+    len = RSTRING_LEN(input);
+    status = yajl_parse(p->h, (const unsigned char*)cptr, len);
+    yajl_helper_check_status(p->h, status, 1, (const unsigned char*)cptr, len);
+    
+    return Qnil;
+}
+
+static VALUE sax_parser_complete(VALUE self) {
+    yajl_status status;
+    sax_parser * p;
+    Data_Get_Struct(self, sax_parser, p);
+    
+    status = yajl_complete_parse(p->h);
+    yajl_helper_check_status(p->h, status, 0, NULL, 0);
+    
+    return Qnil;
+}
+
 void Init_wankel_sax_parser() {
     c_wankel = rb_const_get(rb_cObject, rb_intern("Wankel"));
     c_wankelParser = rb_const_get(c_wankel, rb_intern("Parser"));
@@ -111,6 +138,10 @@ void Init_wankel_sax_parser() {
     rb_define_alloc_func(c_saxParser, sax_parser_alloc);
     rb_define_method(c_saxParser, "initialize", sax_parser_initialize, -1);
     rb_define_method(c_saxParser, "parse", sax_parser_parse, -1);
+    rb_define_method(c_saxParser, "write", sax_parser_write, 1);
+    rb_define_method(c_saxParser, "complete", sax_parser_complete, 0);
+    
+    rb_define_alias(c_saxParser, "<<", "write");
     
     intern_merge = rb_intern("merge");
     intern_clone = rb_intern("clone");

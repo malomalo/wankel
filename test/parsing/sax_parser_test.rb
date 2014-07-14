@@ -49,6 +49,27 @@ class Wankel::SaxParserTest < Minitest::Test
       parser.instance_variable_get("@options") == Wankel::DEFAULTS.merge({:hello => true, :metoo => false})
   end
   
+  test "#parse(STRING)" do
+    parser = TestParser.new
+    parser.parse("{\"id\": 2147483649,\"key\": [1,null,1.0,{}, true]}")
+  end
+  
+  test "#parse(IO)" do
+    #TODO
+    # parser = TestParser.new
+    # parser.parse(StringIO.new("{\"id\": 2147483649,\"key\": [1,null,1.0,{}, true]}"))
+  end
+  
+  test "#write(STRING) && #complete() instead of #parse(DATA)" do
+    parser = TestParser.new
+    parser.expects(:on_map_start).twice
+    
+    parser.write("{\"id\":")
+    parser << " 2147483649,\"ke"
+    parser.write("y\": [1,null,1.0,{}, true]}")
+    parser.complete
+  end
+  
   test "on_map_start callback" do
       parser = TestParser.new
       parser.expects(:on_map_start).twice
