@@ -36,18 +36,18 @@ class Wankel::SaxEncoderTest < Minitest::Test
     assert_equal("null", output.string)
   end
   
-  test "bool(false)" do
+  test "boolean(false)" do
     output = StringIO.new
     encoder = Wankel::SaxEncoder.new(output)
-    encoder.bool(false)
+    encoder.boolean(false)
     encoder.complete
     assert_equal("false", output.string)
   end
   
-  test "bool(true)" do
+  test "boolean(true)" do
     output = StringIO.new
     encoder = Wankel::SaxEncoder.new(output)
-    encoder.bool(true)
+    encoder.boolean(true)
     encoder.complete
     assert_equal("true", output.string)
   end

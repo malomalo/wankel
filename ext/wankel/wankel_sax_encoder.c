@@ -10,7 +10,7 @@ static VALUE wankelSaxEncoder_initialize(int argc, VALUE * argv, VALUE self);
 static VALUE wankelSaxEncoder_number(VALUE self, VALUE number);
 static VALUE wankelSaxEncoder_string(VALUE self, VALUE string);
 static VALUE wankelSaxEncoder_null(VALUE self);
-static VALUE wankelSaxEncoder_bool(VALUE self, VALUE b);
+static VALUE wankelSaxEncoder_boolean(VALUE self, VALUE b);
 static VALUE wankelSaxEncoder_map_open(VALUE self);
 static VALUE wankelSaxEncoder_map_close(VALUE self);
 static VALUE wankelSaxEncoder_array_open(VALUE self);
@@ -136,7 +136,7 @@ static VALUE wankelSaxEncoder_null(VALUE self) {
 	return Qnil;
 }
 
-static VALUE wankelSaxEncoder_bool(VALUE self, VALUE b) {
+static VALUE wankelSaxEncoder_boolean(VALUE self, VALUE b) {
 	wankel_encoder * p;
 	yajl_gen_status status;
     Data_Get_Struct(self, wankel_encoder, p);
@@ -247,7 +247,7 @@ void Init_wankel_sax_encoder() {
     rb_define_method(c_wankelSaxEncoder, "number", wankelSaxEncoder_number, 1);
     rb_define_method(c_wankelSaxEncoder, "string", wankelSaxEncoder_string, 1);
     rb_define_method(c_wankelSaxEncoder, "null", wankelSaxEncoder_null, 0);
-    rb_define_method(c_wankelSaxEncoder, "bool", wankelSaxEncoder_bool, 1);
+    rb_define_method(c_wankelSaxEncoder, "boolean", wankelSaxEncoder_boolean, 1);
     rb_define_method(c_wankelSaxEncoder, "map_open", wankelSaxEncoder_map_open, 0);
     rb_define_method(c_wankelSaxEncoder, "map_close", wankelSaxEncoder_map_close, 0);
     rb_define_method(c_wankelSaxEncoder, "array_open", wankelSaxEncoder_array_open, 0);

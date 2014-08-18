@@ -122,9 +122,10 @@ static VALUE sax_parser_complete(VALUE self) {
     sax_parser * p;
     Data_Get_Struct(self, sax_parser, p);
     
+
     status = yajl_complete_parse(p->h);
     yajl_helper_check_status(p->h, status, 0, NULL, 0);
-    
+
     return Qnil;
 }
 
