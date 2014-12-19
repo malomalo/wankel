@@ -80,11 +80,11 @@ encoder = Wankel::SaxEncoder.new(output)
 encoder.map_open
 encoder.string("key")
 encoder.number(123)
+encoder.string("type")
+encoder.value("value-determined-by-method")
 encoder.map_close
 encoder.complete
-output.rewind
-output.read
-# => '{"key":123}'
+output.string # => '{"key":123,"type":"value-determined-by-method"}'
 ```
 
 Parsing Options

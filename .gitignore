@@ -9,3 +9,4 @@ coverage
 *.log
 Makefile
 tmp
+.DS_Store

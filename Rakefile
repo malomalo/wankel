@@ -1,3 +1,7 @@
+require 'bundler/setup'
+require "bundler/gem_tasks"
+Bundler.require(:development)
+
 require "rake/extensiontask"
 require "rake/testtask"
 require "rubygems/package_task"
