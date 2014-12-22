@@ -5,8 +5,9 @@ rvm:
   - 2.1.2
   - 2.2.0-rc1
 cache: bundler
-before_install:
+install:
   - wget 'https://github.com/lloyd/yajl/archive/2.1.0.tar.gz'
   - tar -xvf '2.1.0.tar.gz'
   - cd 'yajl-2.1.0' && ./configure && make && sudo make install
+  - bundle install
 script: bundle exec rake test
