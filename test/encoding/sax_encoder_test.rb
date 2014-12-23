@@ -142,6 +142,40 @@ class Wankel::SaxEncoderTest < Minitest::Test
     assert_output('{"one":"one","two":2,"three":true,"four":null,"5":[45.21]}')
   end
   
+  test 'flush' do
+    output = StringIO.new
+    
+    # Set large write_buffer_size to test flush
+    encoder = Wankel::SaxEncoder.new(output, :write_buffer_size => 1_000_000)
+    encoder.value({key: "value"})
+    
+    assert_equal("", output.string)
+    encoder.flush
+    assert_equal('{"key":"value"}', output.string)
+  end
+  
+  test "output=, changing the output io during generation" do
+    output1 = StringIO.new
+    output2 = StringIO.new
+    
+    # Set large write_buffer_size to test flush
+    encoder = Wankel::SaxEncoder.new(output1, :write_buffer_size => 1_000_000)
+    encoder.map_open
+    encoder.string("key")
+    encoder.string("value")
+    
+    assert_equal("", output1.string)
+    encoder.output = output2
+    assert_equal('{"key":"value"', output1.string)
+    
+    encoder.string("other-key")
+    encoder.string("other-value")
+    encoder.map_close
+    assert_equal("", output2.string)
+    encoder.flush
+    assert_equal(',"other-key":"other-value"}', output2.string)
+  end
+  
 end
 __END__
 test "map_open" do

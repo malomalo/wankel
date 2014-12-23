@@ -3,6 +3,8 @@
 New Features:
 
 - Added `Wankel::SaxEncoder#value(VALUE)`
+- Abilitly to change the output stream of a `Wankel::SaxEncoder` during generation
+  via `Wankel::SaxEncoder#output=`
 
 Major Changes:
 

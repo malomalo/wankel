@@ -80,6 +80,21 @@ static VALUE wankelSaxEncoder_initialize(int argc, VALUE * argv, VALUE self) {
     return self;
 }
 
+static VALUE wankelSaxEncoder_change_io(VALUE self, VALUE io) {
+    wankel_encoder * p;
+    
+    if (!rb_respond_to(io, intern_io_write)) {
+        rb_raise(e_encodeError, "output must be a an IO");
+    }
+
+    Data_Get_Struct(self, wankel_encoder, p);
+        
+    wankelSaxEncoder_flush(self);
+    p->output = io;
+    
+    return Qnil;
+}
+
 static VALUE wankelSaxEncoder_number(VALUE self, VALUE number) {
     size_t len;
     const char * cptr;
@@ -253,6 +268,7 @@ void Init_wankel_sax_encoder() {
     rb_define_method(c_wankelSaxEncoder, "array_open", wankelSaxEncoder_array_open, 0);
     rb_define_method(c_wankelSaxEncoder, "array_close", wankelSaxEncoder_array_close, 0);
     rb_define_method(c_wankelSaxEncoder, "flush", wankelSaxEncoder_flush, 0);
+    rb_define_method(c_wankelSaxEncoder, "output=", wankelSaxEncoder_change_io, 1);
 
     
 	intern_to_s = rb_intern("to_s");
