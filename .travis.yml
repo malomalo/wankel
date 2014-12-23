@@ -9,6 +9,6 @@ install:
   - wget 'https://github.com/lloyd/yajl/archive/2.1.0.tar.gz'
   - tar -xvf '2.1.0.tar.gz'
   - cd 'yajl-2.1.0' && ./configure && make && sudo make install
-  - ldconfig
+  - sudo ldconfig
   - bundle install
 script: bundle exec rake test
