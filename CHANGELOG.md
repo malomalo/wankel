@@ -2,6 +2,16 @@
 
 New Features:
 
+Major Changes:
+
+Minor Changes:
+
+Bugfixes:
+
+## 0.4.0 (December 23rd, 2014)
+
+New Features:
+
 - Added `Wankel::SaxEncoder#value(VALUE)`
 - Abilitly to change the output stream of a `Wankel::SaxEncoder` during generation
   via `Wankel::SaxEncoder#output=`
@@ -9,10 +19,6 @@ New Features:
 Major Changes:
 
 - `Wankel::SaxEncoder#complete` changed to `Wankel::SaxEncoder#flush`
-
-Minor Changes:
-
-Bugfixes:
 
 ## 0.3.0 (August 18th, 2014)
 
