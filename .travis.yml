@@ -10,4 +10,5 @@ install:
   - cd 'yajl-2.1.0' && ./configure && make && sudo make install
   - sudo ldconfig
   - bundle install
+  - bundle exec rake compile
 script: bundle exec rake test
