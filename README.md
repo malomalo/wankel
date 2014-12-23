@@ -83,7 +83,7 @@ encoder.number(123)
 encoder.string("type")
 encoder.value("value-determined-by-method")
 encoder.map_close
-encoder.complete
+encoder.flush
 output.string # => '{"key":123,"type":"value-determined-by-method"}'
 ```
 

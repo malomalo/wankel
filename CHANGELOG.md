@@ -2,7 +2,11 @@
 
 New Features:
 
+- Added `Wankel::SaxEncoder#value(VALUE)`
+
 Major Changes:
+
+- `Wankel::SaxEncoder#complete` changed to `Wankel::SaxEncoder#flush`
 
 Minor Changes:
 

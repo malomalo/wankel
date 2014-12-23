@@ -15,8 +15,8 @@ static VALUE wankelSaxEncoder_map_open(VALUE self);
 static VALUE wankelSaxEncoder_map_close(VALUE self);
 static VALUE wankelSaxEncoder_array_open(VALUE self);
 static VALUE wankelSaxEncoder_array_close(VALUE self);
-static VALUE wankelSaxEncoder_complete(VALUE self);
-static void wankelSaxEncoder_flush(wankel_encoder * p);
+static VALUE wankelSaxEncoder_flush(VALUE self);
+static void wankelSaxEncoder_write_buffer(wankel_encoder * p);
 static VALUE wankel_sax_encoder_alloc(VALUE klass);
 static void wankel_sax_encoder_free(void * handle);
 static void wankel_sax_encoder_mark(void * handle);
@@ -98,7 +98,7 @@ static VALUE wankelSaxEncoder_number(VALUE self, VALUE number) {
     status = yajl_gen_number(p->g, cptr, len);
 	yajl_helper_check_gen_status(status);
 
-	wankelSaxEncoder_flush(p);
+	wankelSaxEncoder_write_buffer(p);
 	
 	return Qnil;
 }
@@ -118,7 +118,7 @@ static VALUE wankelSaxEncoder_string(VALUE self, VALUE string) {
     status = yajl_gen_string(p->g, (const unsigned char *)cptr, len);
 	yajl_helper_check_gen_status(status);
 
-	wankelSaxEncoder_flush(p);
+	wankelSaxEncoder_write_buffer(p);
 	
 	return Qnil;
 }
@@ -131,7 +131,7 @@ static VALUE wankelSaxEncoder_null(VALUE self) {
     status = yajl_gen_null(p->g);
 	yajl_helper_check_gen_status(status);
 	
-	wankelSaxEncoder_flush(p);
+	wankelSaxEncoder_write_buffer(p);
 	
 	return Qnil;
 }
@@ -144,7 +144,7 @@ static VALUE wankelSaxEncoder_boolean(VALUE self, VALUE b) {
 	status = yajl_gen_bool(p->g, RTEST(b));
 	yajl_helper_check_gen_status(status);
 	
-	wankelSaxEncoder_flush(p);
+	wankelSaxEncoder_write_buffer(p);
 	
 	return Qnil;
 }
@@ -157,7 +157,7 @@ static VALUE wankelSaxEncoder_map_open(VALUE self) {
     status = yajl_gen_map_open(p->g);
 	yajl_helper_check_gen_status(status);
 	
-	wankelSaxEncoder_flush(p);
+	wankelSaxEncoder_write_buffer(p);
 	
 	return Qnil;
 }
@@ -170,7 +170,7 @@ static VALUE wankelSaxEncoder_map_close(VALUE self) {
     status = yajl_gen_map_close(p->g);
 	yajl_helper_check_gen_status(status);
 	
-	wankelSaxEncoder_flush(p);
+	wankelSaxEncoder_write_buffer(p);
 	
 	return Qnil;
 }
@@ -183,7 +183,7 @@ static VALUE wankelSaxEncoder_array_open(VALUE self) {
     status = yajl_gen_array_open(p->g);
 	yajl_helper_check_gen_status(status);
 	
-	wankelSaxEncoder_flush(p);
+	wankelSaxEncoder_write_buffer(p);
 	
 	return Qnil;
 }
@@ -196,12 +196,12 @@ static VALUE wankelSaxEncoder_array_close(VALUE self) {
     status = yajl_gen_array_close(p->g);
 	yajl_helper_check_gen_status(status);
 	
-	wankelSaxEncoder_flush(p);
+	wankelSaxEncoder_write_buffer(p);
 	
 	return Qnil;
 }
 
-static VALUE wankelSaxEncoder_complete(VALUE self) {
+static VALUE wankelSaxEncoder_flush(VALUE self) {
     size_t len;
 	VALUE rbBuffer;
 	wankel_encoder * p;
@@ -220,7 +220,7 @@ static VALUE wankelSaxEncoder_complete(VALUE self) {
 	return Qnil;
 }
 
-void wankelSaxEncoder_flush(wankel_encoder * p) {
+void wankelSaxEncoder_write_buffer(wankel_encoder * p) {
 	VALUE rbBuffer;
     yajl_gen_status status;
     const unsigned char * buffer;
@@ -252,7 +252,7 @@ void Init_wankel_sax_encoder() {
     rb_define_method(c_wankelSaxEncoder, "map_close", wankelSaxEncoder_map_close, 0);
     rb_define_method(c_wankelSaxEncoder, "array_open", wankelSaxEncoder_array_open, 0);
     rb_define_method(c_wankelSaxEncoder, "array_close", wankelSaxEncoder_array_close, 0);
-    rb_define_method(c_wankelSaxEncoder, "complete", wankelSaxEncoder_complete, 0);
+    rb_define_method(c_wankelSaxEncoder, "flush", wankelSaxEncoder_flush, 0);
 
     
 	intern_to_s = rb_intern("to_s");

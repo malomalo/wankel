@@ -24,42 +24,42 @@ class Wankel::SaxEncoderTest < Minitest::Test
 
   test "number" do
     @encoder.number(1234)
-    @encoder.complete
+    @encoder.flush
     
     assert_output("1234")
   end
   
   test "string" do
     @encoder.string("hello world")
-    @encoder.complete
+    @encoder.flush
     
     assert_output('"hello world"')
   end
     
   test "null" do
     @encoder.null
-    @encoder.complete
+    @encoder.flush
 
     assert_output("null")
   end
   
   test "boolean(false)" do
     @encoder.boolean(false)
-    @encoder.complete
+    @encoder.flush
     
     assert_output("false")
   end
   
   test "boolean(true)" do
     @encoder.boolean(true)
-    @encoder.complete
+    @encoder.flush
 
     assert_output("true")
   end
       
   test "map_open" do
     @encoder.map_open
-    @encoder.complete
+    @encoder.flush
     
     assert_output("{")
   end
@@ -67,14 +67,14 @@ class Wankel::SaxEncoderTest < Minitest::Test
   test "map_close" do
     @encoder.map_open
     @encoder.map_close
-    @encoder.complete
+    @encoder.flush
     
     assert_output("{}")
   end
   
   test "array_open" do
     @encoder.array_open
-    @encoder.complete
+    @encoder.flush
     
     assert_output("[")
   end
@@ -82,62 +82,62 @@ class Wankel::SaxEncoderTest < Minitest::Test
   test "array_close" do
     @encoder.array_open
     @encoder.array_close
-    @encoder.complete
+    @encoder.flush
     
     assert_output("[]")
   end
 
   test "value(NUMBER)" do
     @encoder.value(123)
-    @encoder.complete
+    @encoder.flush
     
     assert_output("123")
   end
   
   test "value(STRING)" do
     @encoder.value("hello")
-    @encoder.complete
+    @encoder.flush
     
     assert_output("\"hello\"")
   end
   
   test "value(NIL)" do
     @encoder.value(nil)
-    @encoder.complete
+    @encoder.flush
     
     assert_output("null")
   end
   
   test "value(BOOLEAN)" do
     @encoder.value(true)
-    @encoder.complete
+    @encoder.flush
     
     assert_output("true")
     
     @output.rewind
     @encoder.value(false)
-    @encoder.complete
+    @encoder.flush
     
     assert_output("true")
   end
   
   test "value(ARRAY)" do
     @encoder.value([])
-    @encoder.complete
+    @encoder.flush
     
     assert_output("[]")
   end
   
   test "value(ARRAY_WITH_VALUES)" do
     @encoder.value([1, "hello", nil, false, true, 45.21, {:key => 'val'}])
-    @encoder.complete
+    @encoder.flush
     
     assert_output("[1,\"hello\",null,false,true,45.21,{\"key\":\"val\"}]")
   end
   
   test "value(HASH)" do
     @encoder.value(:one => 'one', :two => 2, :three => true, :four => nil, 5 => [45.21])
-    @encoder.complete
+    @encoder.flush
     
     assert_output('{"one":"one","two":2,"three":true,"four":null,"5":[45.21]}')
   end
