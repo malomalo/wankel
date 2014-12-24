@@ -1,4 +1,4 @@
-#include "wankel_sax_encoder.h"
+#include "wankel_stream_encoder.h"
 
 typedef struct {
     yajl_gen g;
@@ -6,22 +6,22 @@ typedef struct {
 	int write_buffer_size;
 } wankel_encoder;
 
-static VALUE wankelSaxEncoder_initialize(int argc, VALUE * argv, VALUE self);
-static VALUE wankelSaxEncoder_number(VALUE self, VALUE number);
-static VALUE wankelSaxEncoder_string(VALUE self, VALUE string);
-static VALUE wankelSaxEncoder_null(VALUE self);
-static VALUE wankelSaxEncoder_boolean(VALUE self, VALUE b);
-static VALUE wankelSaxEncoder_map_open(VALUE self);
-static VALUE wankelSaxEncoder_map_close(VALUE self);
-static VALUE wankelSaxEncoder_array_open(VALUE self);
-static VALUE wankelSaxEncoder_array_close(VALUE self);
-static VALUE wankelSaxEncoder_flush(VALUE self);
-static void wankelSaxEncoder_write_buffer(wankel_encoder * p);
-static VALUE wankel_sax_encoder_alloc(VALUE klass);
-static void wankel_sax_encoder_free(void * handle);
-static void wankel_sax_encoder_mark(void * handle);
+static VALUE wankelStreamEncoder_initialize(int argc, VALUE * argv, VALUE self);
+static VALUE wankelStreamEncoder_number(VALUE self, VALUE number);
+static VALUE wankelStreamEncoder_string(VALUE self, VALUE string);
+static VALUE wankelStreamEncoder_null(VALUE self);
+static VALUE wankelStreamEncoder_boolean(VALUE self, VALUE b);
+static VALUE wankelStreamEncoder_map_open(VALUE self);
+static VALUE wankelStreamEncoder_map_close(VALUE self);
+static VALUE wankelStreamEncoder_array_open(VALUE self);
+static VALUE wankelStreamEncoder_array_close(VALUE self);
+static VALUE wankelStreamEncoder_flush(VALUE self);
+static void wankelStreamEncoder_write_buffer(wankel_encoder * p);
+static VALUE wankel_stream_encoder_alloc(VALUE klass);
+static void wankel_stream_encoder_free(void * handle);
+static void wankel_stream_encoder_mark(void * handle);
 
-static VALUE c_wankel, c_wankelSaxEncoder, e_encodeError;
+static VALUE c_wankel, c_wankelStreamEncoder, e_encodeError;
 
 static ID intern_to_s, intern_keys, intern_io_write, intern_to_json, intern_clone, intern_merge, intern_DEFAULTS;
 
@@ -47,7 +47,7 @@ static ID sym_beautify, sym_indent_string, sym_validate_utf8, sym_escape_solidus
  *                   it in the iterest of saving bytes. Setting this flag will
  *                   cause YAJL to always escape '/' in generated JSON strings.
  */
-static VALUE wankelSaxEncoder_initialize(int argc, VALUE * argv, VALUE self) {
+static VALUE wankelStreamEncoder_initialize(int argc, VALUE * argv, VALUE self) {
     VALUE defaults = rb_const_get(c_wankel, intern_DEFAULTS);
     VALUE io, options;
 	wankel_encoder * p;
@@ -80,7 +80,7 @@ static VALUE wankelSaxEncoder_initialize(int argc, VALUE * argv, VALUE self) {
     return self;
 }
 
-static VALUE wankelSaxEncoder_change_io(VALUE self, VALUE io) {
+static VALUE wankelStreamEncoder_change_io(VALUE self, VALUE io) {
     wankel_encoder * p;
     
     if (!rb_respond_to(io, intern_io_write)) {
@@ -89,13 +89,13 @@ static VALUE wankelSaxEncoder_change_io(VALUE self, VALUE io) {
 
     Data_Get_Struct(self, wankel_encoder, p);
         
-    wankelSaxEncoder_flush(self);
+    wankelStreamEncoder_flush(self);
     p->output = io;
     
     return Qnil;
 }
 
-static VALUE wankelSaxEncoder_number(VALUE self, VALUE number) {
+static VALUE wankelStreamEncoder_number(VALUE self, VALUE number) {
     size_t len;
     const char * cptr;
 	wankel_encoder * p;
@@ -113,12 +113,12 @@ static VALUE wankelSaxEncoder_number(VALUE self, VALUE number) {
     status = yajl_gen_number(p->g, cptr, len);
 	yajl_helper_check_gen_status(status);
 
-	wankelSaxEncoder_write_buffer(p);
+	wankelStreamEncoder_write_buffer(p);
 	
 	return Qnil;
 }
 
-static VALUE wankelSaxEncoder_string(VALUE self, VALUE string) {
+static VALUE wankelStreamEncoder_string(VALUE self, VALUE string) {
     size_t len;
     const char * cptr;
 	wankel_encoder * p;
@@ -133,12 +133,12 @@ static VALUE wankelSaxEncoder_string(VALUE self, VALUE string) {
     status = yajl_gen_string(p->g, (const unsigned char *)cptr, len);
 	yajl_helper_check_gen_status(status);
 
-	wankelSaxEncoder_write_buffer(p);
+	wankelStreamEncoder_write_buffer(p);
 	
 	return Qnil;
 }
 
-static VALUE wankelSaxEncoder_null(VALUE self) {
+static VALUE wankelStreamEncoder_null(VALUE self) {
 	wankel_encoder * p;
 	yajl_gen_status status;
     Data_Get_Struct(self, wankel_encoder, p);
@@ -146,12 +146,12 @@ static VALUE wankelSaxEncoder_null(VALUE self) {
     status = yajl_gen_null(p->g);
 	yajl_helper_check_gen_status(status);
 	
-	wankelSaxEncoder_write_buffer(p);
+	wankelStreamEncoder_write_buffer(p);
 	
 	return Qnil;
 }
 
-static VALUE wankelSaxEncoder_boolean(VALUE self, VALUE b) {
+static VALUE wankelStreamEncoder_boolean(VALUE self, VALUE b) {
 	wankel_encoder * p;
 	yajl_gen_status status;
     Data_Get_Struct(self, wankel_encoder, p);
@@ -159,12 +159,12 @@ static VALUE wankelSaxEncoder_boolean(VALUE self, VALUE b) {
 	status = yajl_gen_bool(p->g, RTEST(b));
 	yajl_helper_check_gen_status(status);
 	
-	wankelSaxEncoder_write_buffer(p);
+	wankelStreamEncoder_write_buffer(p);
 	
 	return Qnil;
 }
 
-static VALUE wankelSaxEncoder_map_open(VALUE self) {
+static VALUE wankelStreamEncoder_map_open(VALUE self) {
 	wankel_encoder * p;
 	yajl_gen_status status;
     Data_Get_Struct(self, wankel_encoder, p);
@@ -172,12 +172,12 @@ static VALUE wankelSaxEncoder_map_open(VALUE self) {
     status = yajl_gen_map_open(p->g);
 	yajl_helper_check_gen_status(status);
 	
-	wankelSaxEncoder_write_buffer(p);
+	wankelStreamEncoder_write_buffer(p);
 	
 	return Qnil;
 }
 
-static VALUE wankelSaxEncoder_map_close(VALUE self) {
+static VALUE wankelStreamEncoder_map_close(VALUE self) {
 	wankel_encoder * p;
 	yajl_gen_status status;
     Data_Get_Struct(self, wankel_encoder, p);
@@ -185,12 +185,12 @@ static VALUE wankelSaxEncoder_map_close(VALUE self) {
     status = yajl_gen_map_close(p->g);
 	yajl_helper_check_gen_status(status);
 	
-	wankelSaxEncoder_write_buffer(p);
+	wankelStreamEncoder_write_buffer(p);
 	
 	return Qnil;
 }
 
-static VALUE wankelSaxEncoder_array_open(VALUE self) {
+static VALUE wankelStreamEncoder_array_open(VALUE self) {
 	wankel_encoder * p;
 	yajl_gen_status status;
     Data_Get_Struct(self, wankel_encoder, p);
@@ -198,12 +198,12 @@ static VALUE wankelSaxEncoder_array_open(VALUE self) {
     status = yajl_gen_array_open(p->g);
 	yajl_helper_check_gen_status(status);
 	
-	wankelSaxEncoder_write_buffer(p);
+	wankelStreamEncoder_write_buffer(p);
 	
 	return Qnil;
 }
 
-static VALUE wankelSaxEncoder_array_close(VALUE self) {
+static VALUE wankelStreamEncoder_array_close(VALUE self) {
 	wankel_encoder * p;
 	yajl_gen_status status;
     Data_Get_Struct(self, wankel_encoder, p);
@@ -211,12 +211,12 @@ static VALUE wankelSaxEncoder_array_close(VALUE self) {
     status = yajl_gen_array_close(p->g);
 	yajl_helper_check_gen_status(status);
 	
-	wankelSaxEncoder_write_buffer(p);
+	wankelStreamEncoder_write_buffer(p);
 	
 	return Qnil;
 }
 
-static VALUE wankelSaxEncoder_flush(VALUE self) {
+static VALUE wankelStreamEncoder_flush(VALUE self) {
     size_t len;
 	VALUE rbBuffer;
 	wankel_encoder * p;
@@ -235,7 +235,7 @@ static VALUE wankelSaxEncoder_flush(VALUE self) {
 	return Qnil;
 }
 
-void wankelSaxEncoder_write_buffer(wankel_encoder * p) {
+void wankelStreamEncoder_write_buffer(wankel_encoder * p) {
 	VALUE rbBuffer;
     yajl_gen_status status;
     const unsigned char * buffer;
@@ -252,23 +252,23 @@ void wankelSaxEncoder_write_buffer(wankel_encoder * p) {
 	}
 }
 
-void Init_wankel_sax_encoder() {
+void Init_wankel_stream_encoder() {
     c_wankel = rb_const_get(rb_cObject, rb_intern("Wankel"));
-    c_wankelSaxEncoder = rb_define_class_under(c_wankel, "SaxEncoder", rb_cObject);
+    c_wankelStreamEncoder = rb_define_class_under(c_wankel, "StreamEncoder", rb_cObject);
     e_encodeError = rb_const_get(c_wankel, rb_intern("EncodeError"));
 
-	rb_define_alloc_func(c_wankelSaxEncoder, wankel_sax_encoder_alloc);
-    rb_define_method(c_wankelSaxEncoder, "initialize", wankelSaxEncoder_initialize, -1);
-    rb_define_method(c_wankelSaxEncoder, "number", wankelSaxEncoder_number, 1);
-    rb_define_method(c_wankelSaxEncoder, "string", wankelSaxEncoder_string, 1);
-    rb_define_method(c_wankelSaxEncoder, "null", wankelSaxEncoder_null, 0);
-    rb_define_method(c_wankelSaxEncoder, "boolean", wankelSaxEncoder_boolean, 1);
-    rb_define_method(c_wankelSaxEncoder, "map_open", wankelSaxEncoder_map_open, 0);
-    rb_define_method(c_wankelSaxEncoder, "map_close", wankelSaxEncoder_map_close, 0);
-    rb_define_method(c_wankelSaxEncoder, "array_open", wankelSaxEncoder_array_open, 0);
-    rb_define_method(c_wankelSaxEncoder, "array_close", wankelSaxEncoder_array_close, 0);
-    rb_define_method(c_wankelSaxEncoder, "flush", wankelSaxEncoder_flush, 0);
-    rb_define_method(c_wankelSaxEncoder, "output=", wankelSaxEncoder_change_io, 1);
+	rb_define_alloc_func(c_wankelStreamEncoder, wankel_stream_encoder_alloc);
+    rb_define_method(c_wankelStreamEncoder, "initialize", wankelStreamEncoder_initialize, -1);
+    rb_define_method(c_wankelStreamEncoder, "number", wankelStreamEncoder_number, 1);
+    rb_define_method(c_wankelStreamEncoder, "string", wankelStreamEncoder_string, 1);
+    rb_define_method(c_wankelStreamEncoder, "null", wankelStreamEncoder_null, 0);
+    rb_define_method(c_wankelStreamEncoder, "boolean", wankelStreamEncoder_boolean, 1);
+    rb_define_method(c_wankelStreamEncoder, "map_open", wankelStreamEncoder_map_open, 0);
+    rb_define_method(c_wankelStreamEncoder, "map_close", wankelStreamEncoder_map_close, 0);
+    rb_define_method(c_wankelStreamEncoder, "array_open", wankelStreamEncoder_array_open, 0);
+    rb_define_method(c_wankelStreamEncoder, "array_close", wankelStreamEncoder_array_close, 0);
+    rb_define_method(c_wankelStreamEncoder, "flush", wankelStreamEncoder_flush, 0);
+    rb_define_method(c_wankelStreamEncoder, "output=", wankelStreamEncoder_change_io, 1);
 
     
 	intern_to_s = rb_intern("to_s");
@@ -285,22 +285,22 @@ void Init_wankel_sax_encoder() {
 }
 
 // Ruby GC ===================================================================
-static VALUE wankel_sax_encoder_alloc(VALUE klass) {
+static VALUE wankel_stream_encoder_alloc(VALUE klass) {
 	VALUE self;
     wankel_encoder * p;
-	self = Data_Make_Struct(klass, wankel_encoder, wankel_sax_encoder_mark, wankel_sax_encoder_free, p);
+	self = Data_Make_Struct(klass, wankel_encoder, wankel_stream_encoder_mark, wankel_stream_encoder_free, p);
 	p->g = 0;
 	return self;
 }
 
-static void wankel_sax_encoder_free(void * handle) {
+static void wankel_stream_encoder_free(void * handle) {
     wankel_encoder * p = handle;
 	if (p->g){
 		yajl_gen_free(p->g);
 	}
 }
 
-static void wankel_sax_encoder_mark(void * handle) {
+static void wankel_stream_encoder_mark(void * handle) {
     wankel_encoder * p = handle;
     rb_gc_mark(p->output);
 }

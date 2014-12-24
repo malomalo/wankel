@@ -8,6 +8,11 @@ Minor Changes:
 
 Bugfixes:
 
+## 0.5.0 (December 24th, 2014)
+
+- Renaming of `Wankel::SaxEncoder` and `Wankel::SaxParser` to
+  `Wankel::StreamEncoder` and `Wankel::StreamParser`.
+
 ## 0.4.0 (December 23rd, 2014)
 
 New Features:

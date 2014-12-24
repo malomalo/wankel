@@ -1,4 +1,4 @@
-// TODO: i should use the Wankel::SaxEncoder?
+// TODO: i should use the Wankel::StreamEncoder?
 #include "wankel_encoder.h"
 
 static VALUE c_wankel, c_wankelEncoder, e_encodeError;

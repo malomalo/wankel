@@ -1,11 +1,11 @@
 Gem::Specification.new do |s|
   s.name        = 'wankel'
-  s.version     = '0.4.0'
+  s.version     = '0.5.0'
   s.licenses    = ['MIT']
   s.authors     = ['Jon Bracy']
   s.email       = ['jonbracy@gmail.com']
   s.homepage    = 'http://wankelrb.com'
-  s.summary     = 'SAX based JSON parser and encoder'
+  s.summary     = 'Streaming JSON parser and encoder'
   s.description = 'A JSON parser that enables streaming parsing and encoding of JSON'
   
   s.files = `git ls-files`.split("\n")

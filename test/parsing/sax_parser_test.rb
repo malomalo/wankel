@@ -1,7 +1,7 @@
 # encoding: UTF-8
 require 'test_helper'
 
-class TestParser < Wankel::SaxParser
+class TestParser < Wankel::StreamParser
   def on_map_start
   end
   def on_map_end
@@ -24,7 +24,7 @@ class TestParser < Wankel::SaxParser
   end
 end
 
-class Wankel::SaxParserTest < Minitest::Test
+class Wankel::StreamParserTest < Minitest::Test
   
   test 'default inherited from Wankel' do
       parser = TestParser.new
@@ -32,7 +32,7 @@ class Wankel::SaxParserTest < Minitest::Test
   end
   
   test 'default inherited from Wankel && Class' do
-      class TestParser2 < Wankel::SaxParser
+      class TestParser2 < Wankel::StreamParser
         DEFAULTS = {:hello => true}
       end
       
@@ -41,7 +41,7 @@ class Wankel::SaxParserTest < Minitest::Test
   end
   
   test 'default options merged with options inherited from Wankel && Class' do
-      class TestParser3 < Wankel::SaxParser
+      class TestParser3 < Wankel::StreamParser
         DEFAULTS = {:hello => true}
       end
       

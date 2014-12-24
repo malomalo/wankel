@@ -8,13 +8,12 @@ Wankel [![Build Status](https://travis-ci.org/malomalo/wankel.svg?branch=master)
 [YAJL 2](http://lloyd.github.io/yajl/) C Library.
 
 Wankel provides gerneral parsing and encoding to and from
-[JSON](http://json.org/), but also a SAX style parser and encoder for streaming
-parsing and generation.
+[JSON](http://json.org/), but also a streaming parser and encoder.
 
 Features
 --------
 
-* SAX style JSON parsing and encoding
+* Streaming JSON parsing and encoding
 * JSON parsing and encoding directly to and from an IO stream (file, socket, etc)
   or String.
 * Parse and encode *multiple* JSON objects to and from streams or strings
@@ -55,10 +54,10 @@ Wankel.encode({"key" => "value"})
 # => '{"key":"value"}'
 ```
 
-#### Sax Parser Example
+#### Streaming Parser Example
 
 ```ruby
-class SimpleParser < Wankel::SaxParser
+class SimpleParser < Wankel::StreamParser
   def on_array_start
     puts "Array start"
   end
@@ -74,11 +73,11 @@ parser.parse('["string1", null, "string2"]')
 # => "string2"
 ```
 
-#### Sax Encoder Example
+#### Streaming Encoder Example
 
 ```ruby
 output = StringIO.new
-encoder = Wankel::SaxEncoder.new(output)
+encoder = Wankel::StreamEncoder.new(output)
 encoder.map_open
 encoder.string("key")
 encoder.number(123)

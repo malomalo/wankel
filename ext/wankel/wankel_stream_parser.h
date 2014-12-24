@@ -1,5 +1,5 @@
-#ifndef WANKEL_SAX_PARSER
-#define WANKEL_SAX_PARSER
+#ifndef WANKEL_STREAM_PARSER
+#define WANKEL_STREAM_PARSER
 
 #include <ruby.h>
 #include <ruby/encoding.h>
@@ -9,7 +9,7 @@
 #include "wankel.h"
 #include "yajl_helpers.h"
 
-void Init_wankel_sax_parser();
+void Init_wankel_stream_parser();
 
 typedef struct {
     yajl_handle h;
@@ -17,7 +17,7 @@ typedef struct {
     yajl_alloc_funcs alloc_funcs;
     int symbolize_keys;
     VALUE rbufsize;
-} sax_parser;
+} stream_parser;
 
 
 #endif

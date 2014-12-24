@@ -18,7 +18,7 @@ class Wankel
     }
 end
 
-class Wankel::SaxEncoder
+class Wankel::StreamEncoder
   
   def value(val)
     case val

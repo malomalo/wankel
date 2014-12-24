@@ -1,11 +1,11 @@
 require 'test_helper'
 require 'stringio'
 
-class Wankel::SaxEncoderTest < Minitest::Test
+class Wankel::StreamEncoderTest < Minitest::Test
   
   def setup
     @output = StringIO.new
-    @encoder = Wankel::SaxEncoder.new(@output)
+    @encoder = Wankel::StreamEncoder.new(@output)
   end
   
   def assert_output(value)
@@ -13,12 +13,12 @@ class Wankel::SaxEncoderTest < Minitest::Test
   end
   
   test 'default inherited from Wankel' do
-      encoder = Wankel::SaxEncoder.new(StringIO.new)
+      encoder = Wankel::StreamEncoder.new(StringIO.new)
       assert_equal(Wankel::DEFAULTS, encoder.instance_variable_get("@options"))
   end
   
   test 'default options merged with options inherited from Wankel && Class' do
-      encoder = Wankel::SaxEncoder.new(StringIO.new, :hello => true, :metoo => false)
+      encoder = Wankel::StreamEncoder.new(StringIO.new, :hello => true, :metoo => false)
       assert_equal(Wankel::DEFAULTS.merge({:hello => true, :metoo => false}), encoder.instance_variable_get("@options"))
   end
 
@@ -146,7 +146,7 @@ class Wankel::SaxEncoderTest < Minitest::Test
     output = StringIO.new
     
     # Set large write_buffer_size to test flush
-    encoder = Wankel::SaxEncoder.new(output, :write_buffer_size => 1_000_000)
+    encoder = Wankel::StreamEncoder.new(output, :write_buffer_size => 1_000_000)
     encoder.value({key: "value"})
     
     assert_equal("", output.string)
@@ -159,7 +159,7 @@ class Wankel::SaxEncoderTest < Minitest::Test
     output2 = StringIO.new
     
     # Set large write_buffer_size to test flush
-    encoder = Wankel::SaxEncoder.new(output1, :write_buffer_size => 1_000_000)
+    encoder = Wankel::StreamEncoder.new(output1, :write_buffer_size => 1_000_000)
     encoder.map_open
     encoder.string("key")
     encoder.string("value")
