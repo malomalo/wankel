@@ -1,6 +1,8 @@
 <a href="http://wanklerb.com">![Wankel](/logo.png)</a>
 
-[![Circle CI](https://circleci.com/gh/malomalo/wankel/tree/master.svg?style=svg)](https://circleci.com/gh/malomalo/wankel/tree/master)
+
+Wankel [![Build Status](https://travis-ci.org/malomalo/wankel.svg?branch=master)](https://travis-ci.org/malomalo/wankel)
+--------
 
 **Wankel** is a Ruby gem that provides C bindings to the
 [YAJL 2](http://lloyd.github.io/yajl/) C Library.
