@@ -23,4 +23,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'minitest-reporters',  '~> 1.0'
   s.add_development_dependency 'mocha',               '~> 1.1'
   s.add_development_dependency 'sdoc',                '~> 0.4'
+  s.add_development_dependency 'sdoc-templates-42floors', '~> 0.3'
 end

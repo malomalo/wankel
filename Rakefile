@@ -68,15 +68,17 @@ end
 
 RDoc::Task.new do |rdoc|
   rdoc.main = 'README.md'
-  rdoc.rdoc_files.include('README.md')
-  rdoc.rdoc_files.include('lib/**/*.rb')
-  rdoc.rdoc_files.include('ext/**/*.h')
-  rdoc.rdoc_files.include('ext/**/*.c')
-  rdoc.options << '--line-numbers'
-  rdoc.options << '-f' << 'sdoc'
-  rdoc.options << '--charset' << 'utf-8'
-  rdoc.options << '--github'
-  puts rdoc.options
+  rdoc.title = 'Wankel API'
   rdoc.rdoc_dir = 'doc'
-  rdoc.template = 'direct'
+  
+  rdoc.rdoc_files.include('README.md')
+  rdoc.rdoc_files.include('logo.png')
+  rdoc.rdoc_files.include('lib/**/*.rb')
+  rdoc.rdoc_files.include('ext/**/*.{h,c}')
+
+  rdoc.options << '-f' << 'sdoc'
+  rdoc.options << '-T' << '42floors'
+  rdoc.options << '--charset' << 'utf-8'
+  rdoc.options << '--line-numbers'
+  rdoc.options << '--github'
 end
