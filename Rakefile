@@ -5,7 +5,7 @@ Bundler.require(:development)
 require "rake/extensiontask"
 require "rake/testtask"
 require "rubygems/package_task"
-require "rdoc/task"
+require "sdoc"
 require 'fileutils'
 
 if ENV['COVERALLS_REPO_TOKEN']
@@ -64,4 +64,19 @@ task :c_coverage do
     
     SimpleCov::ResultMerger.store_result(data)
   end
+end
+
+RDoc::Task.new do |rdoc|
+  rdoc.main = 'README.md'
+  rdoc.rdoc_files.include('README.md')
+  rdoc.rdoc_files.include('lib/**/*.rb')
+  rdoc.rdoc_files.include('ext/**/*.h')
+  rdoc.rdoc_files.include('ext/**/*.c')
+  rdoc.options << '--line-numbers'
+  rdoc.options << '-f' << 'sdoc'
+  rdoc.options << '--charset' << 'utf-8'
+  rdoc.options << '--github'
+  puts rdoc.options
+  rdoc.rdoc_dir = 'doc'
+  rdoc.template = 'direct'
 end

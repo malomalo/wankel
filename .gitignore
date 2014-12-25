@@ -10,3 +10,4 @@ coverage
 Makefile
 tmp
 .DS_Store
+doc
