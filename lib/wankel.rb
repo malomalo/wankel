@@ -10,6 +10,7 @@ class Wankel
       :multiple_values => false,
       :allow_partial_values => false,
       
+      :mode => :strict,
       :write_buffer_size => 8092,
       :beautify => false,
       :indent_string => '    ',
@@ -38,6 +39,15 @@ class Wankel::StreamEncoder
       map_open
       val.each {|k, v| string(k.to_s); value(v) }
       map_close
+    else
+      case @options[:mode]
+      when :strict
+        raise Wankel::EncodeError, "Unkown JSON type #{val.class}"
+      when :nil
+        null
+      else
+        value(val.send(@options[:mode]))
+      end
     end
   end
   

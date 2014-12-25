@@ -2,6 +2,8 @@
 
 New Features:
 
+ - Added `:mode` option for the `Wankel::StreamEncoder`
+
 Major Changes:
 
 Minor Changes:

@@ -142,6 +142,28 @@ class Wankel::StreamEncoderTest < Minitest::Test
     assert_output('{"one":"one","two":2,"three":true,"four":null,"5":[45.21]}')
   end
   
+  test "value(Object) :mode => :strict" do
+    assert_raises Wankel::EncodeError do
+      @encoder.value(StringIO.new)
+    end
+  end
+
+  test "value(Object) :mode => :nil" do
+    @encoder = Wankel::StreamEncoder.new(@output, :mode => :nil)
+    @encoder.value(StringIO.new)
+    @encoder.flush
+
+    assert_output("null")
+  end
+
+  test "value(Object) :mode => :string" do
+    @encoder = Wankel::StreamEncoder.new(@output, :mode => :string)
+    @encoder.value(StringIO.new("string method"))
+    @encoder.flush
+
+    assert_output('"string method"')
+  end
+
   test 'flush' do
     output = StringIO.new
     
