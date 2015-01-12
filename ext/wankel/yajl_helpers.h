@@ -5,8 +5,9 @@
 #include <yajl/yajl_common.h>
 #include <yajl/yajl_parse.h>
 #include <yajl/yajl_gen.h>
-	
+
 // Yajl Helpers ==============================================================
+void Init_yajl_helpers();
 void yajl_helper_check_status(yajl_handle handle, yajl_status status, int verbose, const unsigned char * jsonText, size_t jsonTextLength);
 void yajl_helper_check_gen_status(yajl_gen_status status);
 
