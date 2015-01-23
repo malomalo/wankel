@@ -2,7 +2,7 @@ language: ruby
 rvm:
   - 2.0.0
   - 2.1.2
-  - 2.2.0-rc1
+  - 2.2.0
 cache: bundler
 install:
   - wget 'https://github.com/lloyd/yajl/archive/2.1.0.tar.gz'
