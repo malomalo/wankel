@@ -2,13 +2,17 @@
 
 New Features:
 
- - Added `:mode` option for the `Wankel::StreamEncoder`
-
 Major Changes:
 
 Minor Changes:
 
 Bugfixes:
+
+## 0.6.0
+
+New Features:
+
+ - Added `:mode` option for the `Wankel::StreamEncoder`
 
 ## 0.5.0 (December 24th, 2014)
 
