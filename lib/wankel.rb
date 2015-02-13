@@ -51,7 +51,6 @@ class Wankel
     :write_buffer_size => 8092,
     :beautify => false,
     :indent_string => '    ',
-    :validate_utf8 => false,
     :escape_solidus => false
   }
 end
