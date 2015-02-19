@@ -8,7 +8,13 @@ Minor Changes:
 
 Bugfixes:
 
-## 0.6.0
+## 0.6.1 (February 19th, 2015)
+
+Minor Changes:
+
+ - Added abilitly to get the output stream via `Wankel::SaxEncoder#output`
+
+## 0.6.0 (February 3rd, 2015)
 
 New Features:
 

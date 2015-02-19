@@ -176,6 +176,14 @@ class Wankel::StreamEncoderTest < Minitest::Test
     assert_equal('{"key":"value"}', output.string)
   end
   
+  test 'output' do
+    output = StringIO.new
+    
+    encoder = Wankel::StreamEncoder.new(output)
+    
+    assert_equal(output.object_id, encoder.output.object_id)
+  end
+  
   test "output=, changing the output io during generation" do
     output1 = StringIO.new
     output2 = StringIO.new

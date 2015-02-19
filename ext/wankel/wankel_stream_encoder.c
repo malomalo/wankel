@@ -95,6 +95,13 @@ static VALUE wankelStreamEncoder_change_io(VALUE self, VALUE io) {
     return Qnil;
 }
 
+static VALUE wankelStreamEncoder_output(VALUE self) {
+    wankel_encoder * p;
+    Data_Get_Struct(self, wankel_encoder, p);
+    
+    return p->output;
+}
+
 static VALUE wankelStreamEncoder_number(VALUE self, VALUE number) {
     size_t len;
     const char * cptr;
@@ -268,6 +275,7 @@ void Init_wankel_stream_encoder() {
     rb_define_method(c_wankelStreamEncoder, "array_open", wankelStreamEncoder_array_open, 0);
     rb_define_method(c_wankelStreamEncoder, "array_close", wankelStreamEncoder_array_close, 0);
     rb_define_method(c_wankelStreamEncoder, "flush", wankelStreamEncoder_flush, 0);
+    rb_define_method(c_wankelStreamEncoder, "output", wankelStreamEncoder_output, 0);
     rb_define_method(c_wankelStreamEncoder, "output=", wankelStreamEncoder_change_io, 1);
 
     
