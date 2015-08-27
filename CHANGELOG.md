@@ -8,6 +8,12 @@ Minor Changes:
 
 Bugfixes:
 
+## 0.6.2 (August 27th, 2015)
+
+Bugfixes:
+
+ - Fix downstream sprintf arguments through rb_raise
+
 ## 0.6.1 (February 19th, 2015)
 
 Minor Changes:

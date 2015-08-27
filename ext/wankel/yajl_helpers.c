@@ -28,7 +28,7 @@ void yajl_helper_check_status(yajl_handle handle, yajl_status status, int verbos
     if(status != yajl_status_ok) {
         unsigned char * str = yajl_get_error(handle, verbose, jsonText, jsonTextLength);
         yajl_free_error(handle, str);
-        rb_raise(rb_const_get(rb_const_get(rb_cObject, rb_intern("Wankel")), rb_intern("ParseError")), (const char*) str);
+        rb_raise(rb_const_get(rb_const_get(rb_cObject, rb_intern("Wankel")), rb_intern("ParseError")), "%s", (const char*) str);
     }
 }
 
