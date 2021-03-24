@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    name: Wankel Test
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        ruby: ['2.6', '2.7', '3.0']
+
+    steps:
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          
+      - uses: actions/checkout@v2
+
+      - name: Install YAJL
+        run: |
+          wget 'https://github.com/lloyd/yajl/archive/2.1.0.tar.gz'
+          tar -xvf '2.1.0.tar.gz'
+          cd 'yajl-2.1.0' && ./configure && make && sudo make install
+          sudo ldconfig
+
+      - name: Run tests
+        run: |
+          bundle install
+          bundle exec rake compile
+          bundle exec rake test
